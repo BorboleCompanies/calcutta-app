@@ -309,7 +309,6 @@ export default function Stats({ items, teams, standings, pot }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="app-header">
-        <div className="eyebrow">FLOG Calcutta</div>
         <h1>STATS</h1>
       </div>
 

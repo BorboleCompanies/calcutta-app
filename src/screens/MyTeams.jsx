@@ -43,7 +43,6 @@ export default function MyTeams({ items, teams, standings, selectedOwner, setSel
   return (
     <>
       <div className="app-header">
-        <div className="eyebrow">Owner view</div>
         <h1>MY TEAMS</h1>
       </div>
 
@@ -118,7 +117,7 @@ function TeamCard({ team, items, dimmed = false }) {
       <div style={{ display: 'flex', alignItems: 'center', padding: '11px 14px', gap: 10 }}>
         <div className={sc}>{team.seed}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {team.name}
           </div>
           <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>

@@ -7,7 +7,6 @@ export default function Leaderboard({ items, standings, pot, goToOwner }) {
   return (
     <>
       <div className="app-header">
-        <div className="eyebrow">FLOG Calcutta 2026</div>
         <h1>LEADERBOARD</h1>
         <div className="subtitle">{aliveCount} teams still alive · ${pot.toLocaleString()} pot</div>
       </div>

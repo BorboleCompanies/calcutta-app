@@ -33,7 +33,6 @@ export default function Payouts({ items, teams, standings, pot }) {
   return (
     <>
       <div className="app-header">
-        <div className="eyebrow">Prize breakdown</div>
         <h1>PAYOUTS</h1>
         <div className="subtitle">Based on ${pot.toLocaleString()} pot</div>
       </div>

@@ -449,7 +449,6 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
     return (
       <>
         <div className="app-header">
-          <div className="eyebrow">Commissioner only</div>
           <h1>ADMIN</h1>
         </div>
         <PasswordGate onAuth={setAdminAuthed} />
@@ -460,7 +459,6 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div className="app-header">
-        <div className="eyebrow">Commissioner</div>
         <h1>ADMIN</h1>
         <div className="subtitle">
           <span style={{ color: 'var(--green)', marginRight: 8 }}>● Logged in</span>

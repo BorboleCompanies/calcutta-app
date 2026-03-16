@@ -67,11 +67,12 @@ export default function AuctionBoard({ items, teams }) {
     <>
       {/* Header */}
       <div className="app-header">
-        <div className="eyebrow">
-          <span className="live-dot" />
-          Live auction · FLOG Calcutta 2026
-        </div>
-        <h1>AUCTION BOARD</h1>
+        <h1>
+          <span style={{ fontSize: 14, fontWeight: 400, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: '.1em', display: 'block', marginBottom: 2 }}>
+            <span className="live-dot" style={{ marginRight: 5 }} />LIVE AUCTION
+          </span>
+          AUCTION BOARD
+        </h1>
         <div className="subtitle">{sold} of {items.length} teams sold · ${pot.toLocaleString()} in pot</div>
       </div>
 
@@ -133,7 +134,7 @@ export default function AuctionBoard({ items, teams }) {
                 <div key={item.id} className={rowClass}>
                   <div className={sc}>{seedLabel}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.display_name}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{region}</div>
