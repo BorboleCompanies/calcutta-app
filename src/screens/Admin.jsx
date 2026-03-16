@@ -342,14 +342,14 @@ function ResultsTab({ teams, items, toast }) {
                       )
                     })}
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12, marginBottom:10 }}>
                     {[m.a,m.b].map((team,idx) => {
                       const val = idx===0 ? sa : sb
                       const hasVal = val!==''&&!isNaN(parseInt(val))
                       return (
                         <input key={team.id} type="number" inputMode="numeric" placeholder="—" value={val}
                           onChange={e => setScore(team.id, e.target.value)}
-                          style={{ flex:1, textAlign:'center', padding:'10px 6px', borderRadius:8,
+                          style={{ width:80, textAlign:'center', padding:'8px 6px', borderRadius:8,
                             border:`1.5px solid ${hasVal?'var(--accent)':'var(--border)'}`,
                             background:'var(--bg3)', color:'var(--text)',
                             fontFamily:'var(--font-mono)', fontSize:18, fontWeight:500, outline:'none' }}
