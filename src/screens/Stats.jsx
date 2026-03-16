@@ -355,7 +355,7 @@ function ThisYearTab({ items, teams, standings, pot }) {
         {/* Highest net */}
         <StatCard
           label="Highest net"
-          value={standings.length ? `+$${Math.max(0,[...standings].sort((a,b)=>b.net-a.net)[0].net).toLocaleString()}` : '—'}
+          value={standings.length ? `${[...standings].sort((a,b)=>b.net-a.net)[0].net >= 0 ? '+' : '−'}$${Math.abs([...standings].sort((a,b)=>b.net-a.net)[0].net).toLocaleString()}` : '—'}
           valueSub={standings.length ? [...standings].sort((a,b)=>b.net-a.net)[0].owner : undefined}
           color="var(--green)"
         />
@@ -368,11 +368,11 @@ function ThisYearTab({ items, teams, standings, pot }) {
           color="var(--blue)"
         />
 
-        {/* Eliminated count */}
+        {/* Bidders remaining */}
         <StatCard
-          label="Eliminated"
-          value={eliminatedTeams.length}
-          sub="teams out"
+          label="Bidders alive"
+          value={standings.filter(s => s.alive > 0).length}
+          sub={`of ${standings.length} total`}
         />
 
       </div>

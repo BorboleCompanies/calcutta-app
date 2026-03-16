@@ -352,7 +352,7 @@ function ResultsTab({ teams, items, toast }) {
                           style={{ flex:1, textAlign:'center', padding:'10px 6px', borderRadius:8,
                             border:`1.5px solid ${hasVal?'var(--accent)':'var(--border)'}`,
                             background:'var(--bg3)', color:'var(--text)',
-                            fontFamily:'var(--font-mono)', fontSize:24, fontWeight:500, outline:'none' }}
+                            fontFamily:'var(--font-mono)', fontSize:18, fontWeight:500, outline:'none' }}
                         />
                       )
                     })}

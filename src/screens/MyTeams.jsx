@@ -249,7 +249,7 @@ export default function MyTeams({ items, teams, standings, selectedOwner, setSel
       </div>
 
       <div className="stats-strip">
-        <div className="stat-item"><div className="stat-val">{ownerItems.length}</div><div className="stat-lbl">Teams</div></div>
+        <div className="stat-item"><div className="stat-val">{ownerTeams.length}</div><div className="stat-lbl">Teams</div></div>
         <div className="stat-item"><div className="stat-val">{alive.length}</div><div className="stat-lbl">Alive</div></div>
         <div className="stat-item"><div className="stat-val">${totalBid.toLocaleString()}</div><div className="stat-lbl">Bid</div></div>
         <div className="stat-item">
