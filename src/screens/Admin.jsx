@@ -453,26 +453,23 @@ function OrderTab({ items, toast }) {
   const [order,   setOrder]   = useState(() => unsold.map(i => ({ ...i })))
   const [dirty,   setDirty]   = useState(false)
   const [saving,  setSaving]  = useState(false)
-  const [dragIdx, setDragIdx] = useState(null)   // index being dragged
-  const [overIdx, setOverIdx] = useState(null)   // index being hovered over
+  const [dragIdx, setDragIdx] = useState(null)
+  const [overIdx, setOverIdx] = useState(null)
 
-  // Pointer-based drag state
-  const dragRef    = useRef(null)   // the element being dragged (clone)
-  const startY     = useRef(0)
-  const startIdx   = useRef(null)
-  const listRef    = useRef(null)
+  const dragRef  = useRef(null)
+  const startY   = useRef(0)
+  const startIdx = useRef(null)
+  const listRef  = useRef(null)
 
-  // ── Pointer drag handlers ──────────────────────────────────
   const onPointerDown = useCallback((e, idx) => {
     e.preventDefault()
     startIdx.current = idx
     startY.current   = e.clientY
     setDragIdx(idx)
 
-    // Clone the row as a floating ghost
-    const row    = e.currentTarget.closest('.order-row')
-    const clone  = row.cloneNode(true)
-    const rect   = row.getBoundingClientRect()
+    const row   = e.currentTarget.closest('.order-row')
+    const clone = row.cloneNode(true)
+    const rect  = row.getBoundingClientRect()
     clone.style.cssText = `
       position: fixed; z-index: 9999; pointer-events: none;
       width: ${rect.width}px; left: ${rect.left}px; top: ${rect.top}px;
@@ -486,8 +483,6 @@ function OrderTab({ items, toast }) {
     const onMove = (ev) => {
       const y = ev.touches ? ev.touches[0].clientY : ev.clientY
       clone.style.top = (rect.top + (y - startY.current)) + 'px'
-
-      // Find which row we're over
       const list = listRef.current
       if (!list) return
       const rows = list.querySelectorAll('.order-row')
@@ -501,14 +496,9 @@ function OrderTab({ items, toast }) {
 
     const onUp = (ev) => {
       const y = ev.changedTouches ? ev.changedTouches[0].clientY : ev.clientY
-      if (dragRef.current) {
-        dragRef.current.remove()
-        dragRef.current = null
-      }
-      // Commit the reorder
+      if (dragRef.current) { dragRef.current.remove(); dragRef.current = null }
       const from = startIdx.current
       setOrder(prev => {
-        // Calculate final target index
         const list = listRef.current
         if (!list) return prev
         const rows = list.querySelectorAll('.order-row')
@@ -538,64 +528,26 @@ function OrderTab({ items, toast }) {
     document.addEventListener('touchend',    onUp)
   }, [])
 
-  // ── Save to Supabase ───────────────────────────────────────
   const saveOrder = async () => {
     setSaving(true)
-    // Reassign auction_order: sold items keep their current numbers,
-    // unsold items get renumbered starting from the first unsold slot.
-    // Strategy: interleave sold (locked) and unsold (reordered) by
-    // preserving the relative position of sold items and filling gaps.
-
-    // Collect all items with their desired final auction_order
-    // Sold items are already in place; we just need to number the unsold
-    // items in the new sequence, fitting around the sold items.
-
-    // Build full merged order: sold items occupy their original positions,
-    // unsold items fill in around them in new sequence order.
-    const allSorted  = [...items].sort((a, b) => a.auction_order - b.auction_order)
-    const soldOrders = sold.map(i => i.auction_order)  // positions to keep
-
-    // Build new order array: place sold items at their locked positions,
-    // fill remaining positions with the reordered unsold items
-    const total     = items.length
+    const total    = items.length
     const newOrders = new Array(total)
-    const soldSet   = new Set(soldOrders)
-
-    // Fill sold positions first
     sold.forEach(i => { newOrders[i.auction_order - 1] = i.id })
-
-    // Fill remaining positions with unsold in new sequence
     let unsoldIdx = 0
     for (let pos = 0; pos < total; pos++) {
-      if (!newOrders[pos]) {
-        newOrders[pos] = order[unsoldIdx]?.id
-        unsoldIdx++
-      }
+      if (!newOrders[pos]) { newOrders[pos] = order[unsoldIdx]?.id; unsoldIdx++ }
     }
-
-    // Build updates: id → new auction_order (1-based)
     const updates = newOrders
       .map((id, pos) => ({ id, auction_order: pos + 1 }))
       .filter(u => u.id != null)
-
-    // Batch update via upsert
-    const { error } = await supabase
-      .from('auction_items')
-      .upsert(updates, { onConflict: 'id' })
-
+    const { error } = await supabase.from('auction_items').upsert(updates, { onConflict: 'id' })
     setSaving(false)
-    if (error) {
-      toast('Error saving order')
-      console.error(error)
-    } else {
-      toast('Auction order saved!')
-      setDirty(false)
-    }
+    if (error) { toast('Error saving order'); console.error(error) }
+    else { toast('Auction order saved!'); setDirty(false) }
   }
 
-  // ── Render ─────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+    <>
       {/* Info bar */}
       <div style={{ padding: '10px 16px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <div>
@@ -618,8 +570,8 @@ function OrderTab({ items, toast }) {
         )}
       </div>
 
-      {/* Unsold items — draggable */}
-      <div style={{ flex: 1, overflowY: 'auto' }} ref={listRef}>
+      {/* Scrollable list — key fix: explicit overflow-y scroll here */}
+      <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }} ref={listRef}>
         {order.length === 0 && (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
@@ -638,7 +590,7 @@ function OrderTab({ items, toast }) {
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '10px 16px',
                 borderBottom: '1px solid rgba(42,47,61,.5)',
-                background: isOver    ? 'rgba(245,166,35,.08)'
+                background: isOver     ? 'rgba(245,166,35,.08)'
                           : isDragging ? 'rgba(255,255,255,.04)'
                           : 'transparent',
                 borderTop: isOver ? '2px solid var(--accent)' : '2px solid transparent',
@@ -648,12 +600,9 @@ function OrderTab({ items, toast }) {
                 touchAction: 'none',
               }}
             >
-              {/* Position number */}
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, flexShrink: 0, textAlign: 'right' }}>
                 {idx + 1}
               </div>
-
-              {/* Name */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.display_name}
@@ -662,15 +611,9 @@ function OrderTab({ items, toast }) {
                   <div style={{ fontSize: 12, color: 'var(--red)', marginTop: 1 }}>12–14 block</div>
                 )}
               </div>
-
-              {/* Drag handle */}
               <div
                 onPointerDown={e => onPointerDown(e, idx)}
-                style={{
-                  padding: '8px 6px', cursor: 'grab', flexShrink: 0,
-                  color: 'var(--text3)', fontSize: 18, lineHeight: 1,
-                  touchAction: 'none', userSelect: 'none',
-                }}
+                style={{ padding: '8px 6px', cursor: 'grab', flexShrink: 0, color: 'var(--text3)', fontSize: 18, lineHeight: 1, touchAction: 'none', userSelect: 'none' }}
               >
                 ☰
               </div>
@@ -678,22 +621,11 @@ function OrderTab({ items, toast }) {
           )
         })}
 
-        {/* Sold items — locked */}
         {sold.length > 0 && (
           <>
-            <div className="sec-head">
-              <span>Sold · locked in place ({sold.length})</span>
-            </div>
+            <div className="sec-head"><span>Sold · locked ({sold.length})</span></div>
             {sold.map(item => (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 16px',
-                  borderBottom: '1px solid rgba(42,47,61,.4)',
-                  opacity: 0.45,
-                }}
-              >
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: '1px solid rgba(42,47,61,.4)', opacity: 0.45 }}>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, textAlign: 'right', flexShrink: 0 }}>
                   {item.auction_order}
                 </div>
@@ -712,7 +644,7 @@ function OrderTab({ items, toast }) {
         )}
         <div style={{ height: 16 }} />
       </div>
-    </div>
+    </>
   )
 }
 
@@ -730,8 +662,8 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      <div className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>
           <h1>ADMIN</h1>
           <div className="subtitle">
@@ -743,17 +675,19 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
         </button>
       </div>
 
-      <div className="tab-row" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none' }}>
+      <div className="tab-row" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none', flexShrink: 0 }}>
         <button className={`tab-btn ${tab === 'bids'    ? 'active' : ''}`} onClick={() => setTab('bids')}    style={{ whiteSpace: 'nowrap' }}>Enter Bids</button>
         <button className={`tab-btn ${tab === 'results' ? 'active' : ''}`} onClick={() => setTab('results')} style={{ whiteSpace: 'nowrap' }}>Results</button>
         <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}     style={{ whiteSpace: 'nowrap' }}>Bid Log</button>
         <button className={`tab-btn ${tab === 'order'   ? 'active' : ''}`} onClick={() => setTab('order')}   style={{ whiteSpace: 'nowrap' }}>Auction Order</button>
       </div>
 
-      {tab === 'bids'    && <BidsTab    items={items} teams={teams} toast={toast} />}
-      {tab === 'results' && <ResultsTab items={items} teams={teams} toast={toast} />}
-      {tab === 'log'     && <BidLogTab  items={items} teams={teams} toast={toast} />}
-      {tab === 'order'   && <OrderTab   items={items} toast={toast} />}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {tab === 'bids'    && <BidsTab    items={items} teams={teams} toast={toast} />}
+        {tab === 'results' && <ResultsTab items={items} teams={teams} toast={toast} />}
+        {tab === 'log'     && <BidLogTab  items={items} teams={teams} toast={toast} />}
+        {tab === 'order'   && <OrderTab   items={items} toast={toast} />}
+      </div>
     </div>
   )
 }

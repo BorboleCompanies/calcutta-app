@@ -110,9 +110,9 @@ html, body {
 .nav-btn .nav-icon { font-size: 17px; }
 .nav-btn .nav-label {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 9px;
   color: var(--text3);
-  letter-spacing: .04em;
+  letter-spacing: .05em;
   text-transform: uppercase;
 }
 .nav-btn.active .nav-label { color: var(--accent); }
