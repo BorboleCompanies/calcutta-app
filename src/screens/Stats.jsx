@@ -68,7 +68,7 @@ function SeedTab() {
               border: `1.5px solid ${sortBy === val ? 'var(--accent)' : 'var(--border)'}`,
               background: sortBy === val ? 'rgba(245,166,35,.12)' : 'transparent',
               color: sortBy === val ? 'var(--accent)' : 'var(--text2)',
-              fontFamily: 'var(--font-mono)', fontSize: 10,
+              fontFamily: 'var(--font-mono)', fontSize: 12,
               letterSpacing: '.06em', cursor: 'pointer', textTransform: 'uppercase',
             }}
           >
@@ -76,15 +76,15 @@ function SeedTab() {
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        <div style={{ fontSize: 10, color: 'var(--text3)', alignSelf: 'center' }}>10-year avg</div>
+        <div style={{ fontSize: 12, color: 'var(--text3)', alignSelf: 'center' }}>10-year avg</div>
       </div>
 
       {/* Column headers */}
       <div style={{ display: 'flex', padding: '6px 16px', gap: 8 }}>
-        <div style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Seed</div>
-        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>Avg bid</div>
-        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>2025</div>
-        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>ROI</div>
+        <div style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Seed</div>
+        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>Avg bid</div>
+        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>2025</div>
+        <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', textAlign: 'right' }}>ROI</div>
       </div>
 
       {sorted.map(s => (
@@ -93,7 +93,7 @@ function SeedTab() {
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
               {s.label}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{s.note}</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>{s.note}</div>
           </div>
           <div style={{ width: 52, fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text2)', textAlign: 'right' }}>
             ${s.avg}
@@ -145,7 +145,7 @@ function OwnerTab() {
               border: `1.5px solid ${sortBy === val ? 'var(--accent)' : 'var(--border)'}`,
               background: sortBy === val ? 'rgba(245,166,35,.12)' : 'transparent',
               color: sortBy === val ? 'var(--accent)' : 'var(--text2)',
-              fontFamily: 'var(--font-mono)', fontSize: 10,
+              fontFamily: 'var(--font-mono)', fontSize: 12,
               letterSpacing: '.06em', cursor: 'pointer', textTransform: 'uppercase',
             }}
           >
@@ -156,7 +156,7 @@ function OwnerTab() {
 
       {/* 10-year pot summary */}
       <div style={{ margin: '10px 16px', borderRadius: 10, background: 'var(--bg2)', border: '1px solid var(--border)', padding: '12px 14px' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
           10-year totals (2016–2025, no 2020)
         </div>
         <div style={{ display: 'flex', gap: 0 }}>
@@ -168,7 +168,7 @@ function OwnerTab() {
           ].map((s, i) => (
             <div key={i} style={{ flex: 1, textAlign: 'center', borderRight: i < 3 ? '1px solid var(--border)' : 'none', padding: '0 4px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 500, color: 'var(--accent)' }}>{s.val}</div>
-              <div style={{ fontSize: 9, color: 'var(--text3)', marginTop: 2 }}>{s.lbl}</div>
+              <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>{s.lbl}</div>
             </div>
           ))}
         </div>
@@ -176,7 +176,7 @@ function OwnerTab() {
 
       {/* Pot by year mini chart */}
       <div style={{ margin: '0 16px 10px', borderRadius: 10, background: 'var(--bg2)', border: '1px solid var(--border)', padding: '12px 14px' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 10 }}>
           Pot size by year
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 48 }}>
@@ -185,7 +185,7 @@ function OwnerTab() {
             return (
               <div key={y.year} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, height: '100%', justifyContent: 'flex-end' }}>
                 <div style={{ width: '100%', background: 'var(--accent)', borderRadius: '2px 2px 0 0', opacity: .7 + (pct / 500), height: `${pct}%` }} />
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--text3)' }}>{String(y.year).slice(2)}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)' }}>{String(y.year).slice(2)}</div>
               </div>
             )
           })}
@@ -195,14 +195,14 @@ function OwnerTab() {
       {/* Owner rows */}
       {sorted.map((o, i) => (
         <div key={o.owner} style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 10 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 16, flexShrink: 0 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 16, flexShrink: 0 }}>
             {i + 1}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, letterSpacing: '.03em' }} className={`owner-${o.owner}`}>
               {o.owner}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>
               {o.teams} teams · ${o.bids.toLocaleString()} wagered
             </div>
           </div>
@@ -210,7 +210,7 @@ function OwnerTab() {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500, color: o.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
               {o.net >= 0 ? '+' : '−'}${Math.abs(o.net).toLocaleString()}
             </div>
-            <div style={{ fontSize: 10, marginTop: 2, color: o.roi >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            <div style={{ fontSize: 12, marginTop: 2, color: o.roi >= 0 ? 'var(--green)' : 'var(--red)' }}>
               {o.roi >= 0 ? '+' : ''}{o.roi}% ROI
             </div>
           </div>
@@ -250,9 +250,9 @@ function ThisYearTab({ items, teams, standings, pot }) {
 
   const StatCard = ({ label, value, sub, color }) => (
     <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>{label}</div>
       <div style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 800, color: color || 'var(--text)', letterSpacing: '.02em', lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 3 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 3 }}>{sub}</div>}
     </div>
   )
 
@@ -280,10 +280,10 @@ function ThisYearTab({ items, teams, standings, pot }) {
       <div className="sec-head"><span>This year by owner</span></div>
       {[...standings].sort((a,b) => b.net - a.net).map((s, i) => (
         <div key={s.owner} style={{ display: 'flex', alignItems: 'center', padding: '9px 16px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 10 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text3)', width: 16, flexShrink: 0 }}>{i + 1}</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text3)', width: 16, flexShrink: 0 }}>{i + 1}</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, letterSpacing: '.03em', color: 'var(--text)' }}>{s.owner}</div>
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>
               {s.items.length} teams · ${s.totalBid.toLocaleString()} bid · {s.alive} alive
             </div>
           </div>
@@ -291,7 +291,7 @@ function ThisYearTab({ items, teams, standings, pot }) {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: s.gross > 0 ? 'var(--accent)' : 'var(--text3)' }}>
               ${s.gross.toLocaleString()} gross
             </div>
-            <div style={{ fontSize: 11, marginTop: 2, color: s.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            <div style={{ fontSize: 12, marginTop: 2, color: s.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
               {s.net >= 0 ? '+' : '−'}${Math.abs(s.net).toLocaleString()} net
             </div>
           </div>

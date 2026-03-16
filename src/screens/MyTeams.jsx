@@ -120,14 +120,14 @@ function TeamCard({ team, items, dimmed = false }) {
           <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {team.name}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>
             {team.region} · {team.wins} win{team.wins !== 1 ? 's' : ''} · {team.eliminated ? 'Out' : 'Active'}
           </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text2)' }}>${bidAmt}</div>
           {team.eliminated && team.loss_margin > 0 && (
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>lost by {team.loss_margin}</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>lost by {team.loss_margin}</div>
           )}
         </div>
       </div>
