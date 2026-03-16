@@ -68,7 +68,7 @@ export default function AuctionBoard({ items, teams }) {
       {/* Header */}
       <div className="app-header">
         <h1>
-          <span style={{ fontSize: 14, fontWeight: 400, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: '.1em', display: 'block', marginBottom: 2 }}>
+          <span style={{ fontSize: 16, fontWeight: 400, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: '.1em', display: 'block', marginBottom: 2 }}>
             <span className="live-dot" style={{ marginRight: 5 }} />LIVE AUCTION
           </span>
           AUCTION BOARD
@@ -134,25 +134,25 @@ export default function AuctionBoard({ items, teams }) {
                 <div key={item.id} className={rowClass}>
                   <div className={sc}>{seedLabel}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.display_name}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{region}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>{region}</div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     {isOnBlock && <div className="on-block-badge">On block</div>}
                     {!isOnBlock && isSold && (
                       <>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 500, color: 'var(--text)' }}>
                           ${item.bid_amount}
                         </div>
-                        <div style={{ fontFamily: 'var(--font-head)', fontSize: 12, fontWeight: 700, letterSpacing: '.04em' }} className={`owner-${item.owner}`}>
+                        <div style={{ fontFamily: 'var(--font-head)', fontSize: 14, fontWeight: 700, letterSpacing: '.04em' }} className={`owner-${item.owner}`}>
                           {item.owner}
                         </div>
                       </>
                     )}
                     {!isOnBlock && !isSold && (
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text3)' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)' }}>
                         avg ${SEED_AVG[seedLabel] ?? 30}
                       </div>
                     )}

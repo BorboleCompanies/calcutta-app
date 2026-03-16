@@ -39,16 +39,16 @@ export default function Leaderboard({ items, standings, pot, goToOwner }) {
             onClick={() => goToOwner(s.owner)}
           >
             {/* Rank */}
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 20, textAlign: 'center', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 20, textAlign: 'center', flexShrink: 0 }}>
               {i + 1}
             </div>
 
             {/* Owner info */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 20, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
                 {s.owner}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>
+              <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>
                 <span style={{ color: s.alive > 0 ? 'var(--green)' : 'var(--text3)' }}>
                   {s.alive} alive
                 </span>
@@ -62,10 +62,10 @@ export default function Leaderboard({ items, standings, pot, goToOwner }) {
             {/* Financials */}
             <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 500 }} className={s.net > 0 ? 'pos' : s.net < 0 ? 'neg' : 'muted'}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 500 }} className={s.net > 0 ? 'pos' : s.net < 0 ? 'neg' : 'muted'}>
                   {s.net > 0 ? '+' : ''}{s.net < 0 ? '−' : ''}${Math.abs(s.net).toLocaleString()}
                 </div>
-                <div style={{ fontSize: 10, marginTop: 2 }} className={s.roi > 0 ? 'pos' : s.roi < 0 ? 'neg' : 'muted'}>
+                <div style={{ fontSize: 13, marginTop: 2 }} className={s.roi > 0 ? 'pos' : s.roi < 0 ? 'neg' : 'muted'}>
                   {s.roi > 0 ? '+' : ''}{s.roi}% ROI
                 </div>
               </div>

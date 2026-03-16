@@ -45,13 +45,13 @@ export default function Payouts({ items, teams, standings, pot }) {
         border: '1px solid rgba(245,166,35,.28)',
         padding: '18px 20px',
       }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
           Champion payout
         </div>
         <div style={{ fontFamily: 'var(--font-head)', fontSize: 46, fontWeight: 800, color: 'var(--text)', lineHeight: 1, marginTop: 4 }}>
           ${Math.round(pot * .20).toLocaleString()}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 6 }}>
+        <div style={{ fontSize: 14, color: 'var(--text2)', marginTop: 6 }}>
           20% of pot · Requires 6 wins · Winner TBD
         </div>
       </div>
@@ -67,15 +67,15 @@ export default function Payouts({ items, teams, standings, pot }) {
         return (
           <div key={row.wins} style={{ display: 'flex', alignItems: 'center', padding: '11px 20px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{row.label}</div>
-              <div style={{ fontSize: 11, color: confirmed ? 'var(--text2)' : 'var(--text3)', marginTop: 1 }}>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{row.label}</div>
+              <div style={{ fontSize: 13, color: confirmed ? 'var(--text2)' : 'var(--text3)', marginTop: 1 }}>
                 {confirmed
                   ? winners.map(w => w.owner).join(', ')
                   : row.note + ' · TBD'}
               </div>
             </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text3)', width: 32 }}>{row.pct}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 500, color: confirmed ? 'var(--green)' : 'var(--accent)', minWidth: 52, textAlign: 'right' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 32 }}>{row.pct}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 500, color: confirmed ? 'var(--green)' : 'var(--accent)', minWidth: 52, textAlign: 'right' }}>
               ${amount.toLocaleString()}{confirmed ? ' ✓' : ''}
             </div>
           </div>
@@ -85,15 +85,15 @@ export default function Payouts({ items, teams, standings, pot }) {
       {/* Largest loss margin */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '11px 20px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>Largest loss margin</div>
-          <div style={{ fontSize: 11, color: lossOwnerStanding ? 'var(--text2)' : 'var(--text3)', marginTop: 1 }}>
+          <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Largest loss margin</div>
+          <div style={{ fontSize: 13, color: lossOwnerStanding ? 'var(--text2)' : 'var(--text3)', marginTop: 1 }}>
             {biggestLoser
               ? `${lossOwnerStanding?.owner} · ${biggestLoser.name} −${biggestLoser.loss_margin}`
               : '4% bonus · TBD'}
           </div>
         </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text3)', width: 32 }}>4%</div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 500, color: lossOwnerStanding ? 'var(--green)' : 'var(--accent)', minWidth: 52, textAlign: 'right' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 32 }}>4%</div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 17, fontWeight: 500, color: lossOwnerStanding ? 'var(--green)' : 'var(--accent)', minWidth: 52, textAlign: 'right' }}>
           ${Math.round(pot * .04).toLocaleString()}{lossOwnerStanding ? ' ✓' : ''}
         </div>
       </div>

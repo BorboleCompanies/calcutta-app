@@ -20,10 +20,10 @@ function PasswordGate({ onAuth }) {
   }
   return (
     <div style={{ padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
-      <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '.04em' }}>
+      <div style={{ fontFamily: 'var(--font-head)', fontSize: 24, fontWeight: 800, color: 'var(--text)', letterSpacing: '.04em' }}>
         ADMIN ACCESS
       </div>
-      <div style={{ fontSize: 13, color: 'var(--text3)', textAlign: 'center' }}>
+      <div style={{ fontSize: 15, color: 'var(--text3)', textAlign: 'center' }}>
         Enter the commissioner password to manage bids and results.
       </div>
       <input
@@ -36,7 +36,7 @@ function PasswordGate({ onAuth }) {
         style={{ borderColor: err ? 'var(--red)' : undefined, textAlign: 'center', fontSize: 18 }}
         autoFocus
       />
-      {err && <div style={{ fontSize: 12, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>Wrong password</div>}
+      {err && <div style={{ fontSize: 14, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>Wrong password</div>}
       <button className="btn-primary" onClick={submit} style={{ maxWidth: 240 }}>
         ENTER
       </button>
@@ -109,21 +109,21 @@ function BidsTab({ items, teams, toast }) {
     <div style={{ overflowY: 'auto', flex: 1 }}>
       {/* Pot strip */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)' }}>
-        <span style={{ fontSize: 11, color: 'var(--text3)' }}>Running pot</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--accent)' }}>
+        <span style={{ fontSize: 13, color: 'var(--text3)' }}>Running pot</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, color: 'var(--accent)' }}>
           ${soldItems.reduce((s,i) => s+i.bid_amount,0).toLocaleString()}
         </span>
-        <span style={{ fontSize: 11, color: 'var(--text2)' }}>{soldItems.length} of {items.length} sold</span>
+        <span style={{ fontSize: 13, color: 'var(--text2)' }}>{soldItems.length} of {items.length} sold</span>
       </div>
 
       {/* Current team card */}
       <div style={{ margin: '12px 16px 6px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(245,166,35,.12),rgba(232,84,26,.06))', border: '1px solid rgba(245,166,35,.28)', padding: '16px' }}>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>
           Up for auction
         </div>
-        <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '.02em', lineHeight: 1.1 }}>
+        <div style={{ fontFamily: 'var(--font-head)', fontSize: 24, fontWeight: 800, color: 'var(--text)', letterSpacing: '.02em', lineHeight: 1.1 }}>
           {nextItem.display_name}
-          {curSeed && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text2)', marginLeft: 8 }}>Seed {curSeed}</span>}
+          {curSeed && <span style={{ fontSize: 16, fontWeight: 400, color: 'var(--text2)', marginLeft: 8 }}>Seed {curSeed}</span>}
         </div>
         {curSeed && (
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -133,8 +133,8 @@ function BidsTab({ items, teams, toast }) {
               { val: `$${last}`, lbl: '2025 avg' },
             ].map(s => (
               <div key={s.lbl} style={{ flex: 1, background: 'rgba(255,255,255,.05)', borderRadius: 8, padding: '7px 10px', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500, color: s.color || 'var(--accent)' }}>{s.val}</div>
-                <div style={{ fontSize: 9, color: 'var(--text3)', marginTop: 1 }}>{s.lbl}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 500, color: s.color || 'var(--accent)' }}>{s.val}</div>
+                <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>{s.lbl}</div>
               </div>
             ))}
           </div>
@@ -143,7 +143,7 @@ function BidsTab({ items, teams, toast }) {
 
       {/* Bid form */}
       <div className="card">
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
           Auction winner
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
@@ -158,7 +158,7 @@ function BidsTab({ items, teams, toast }) {
                 background: owner === o ? 'var(--blue)' : 'transparent',
                 color: owner === o ? '#fff' : 'var(--text2)',
                 fontFamily: 'var(--font-head)',
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
                 letterSpacing: '.03em',
@@ -169,7 +169,7 @@ function BidsTab({ items, teams, toast }) {
           ))}
         </div>
 
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>
           Winning bid
         </div>
 
@@ -177,22 +177,22 @@ function BidsTab({ items, teams, toast }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <button
             onClick={() => adjustBid(amount > 100 ? -10 : -5)}
-            style={{ width: 40, height: 40, borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', flexShrink: 0 }}
+            style={{ width: 40, height: 40, borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', flexShrink: 0 }}
           >−</button>
           <div style={{ flex: 1, position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--text2)' }}>$</span>
+            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: 'var(--font-mono)', fontSize: 20, color: 'var(--text2)' }}>$</span>
             <input
               type="number"
               className="text-input"
               value={amount}
               min={10}
               onChange={e => setBid(Math.max(10, parseInt(e.target.value) || 10))}
-              style={{ paddingLeft: 28, fontSize: 20, textAlign: 'center' }}
+              style={{ paddingLeft: 28, fontSize: 22, textAlign: 'center' }}
             />
           </div>
           <button
             onClick={() => adjustBid(amount >= 100 ? 10 : 5)}
-            style={{ width: 40, height: 40, borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', flexShrink: 0 }}
+            style={{ width: 40, height: 40, borderRadius: 8, border: '1.5px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', flexShrink: 0 }}
           >+</button>
         </div>
 
@@ -202,7 +202,7 @@ function BidsTab({ items, teams, toast }) {
             <button
               key={v}
               onClick={() => setBid(v)}
-              style={{ flex: 1, padding: '6px 2px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text3)', fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer' }}
+              style={{ flex: 1, padding: '6px 2px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text3)', fontFamily: 'var(--font-mono)', fontSize: 13, cursor: 'pointer' }}
             >
               ${v}
             </button>
@@ -281,10 +281,10 @@ function ResultsTab({ teams, items, toast }) {
         >
           <div className={sc}>{team.seed}</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
               {team.name}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+            <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>
               <span className={`owner-${owner}`}>{owner}</span>
               {' · '}
               {team.wins} win{team.wins !== 1 ? 's' : ''}
@@ -300,7 +300,7 @@ function ResultsTab({ teams, items, toast }) {
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               <button
                 className="btn-outline"
-                style={{ flex: 1, background: 'transparent', borderColor: 'var(--green)', color: 'var(--green)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
+                style={{ flex: 1, background: 'transparent', borderColor: 'var(--green)', color: 'var(--green)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
                 onClick={() => recordWin(team)}
                 disabled={saving}
               >
@@ -308,7 +308,7 @@ function ResultsTab({ teams, items, toast }) {
               </button>
               <button
                 className="btn-outline"
-                style={{ flex: 1, background: 'transparent', borderColor: 'var(--red)', color: 'var(--red)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
+                style={{ flex: 1, background: 'transparent', borderColor: 'var(--red)', color: 'var(--red)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
                 onClick={() => recordLoss(team)}
                 disabled={saving}
               >
@@ -325,7 +325,7 @@ function ResultsTab({ teams, items, toast }) {
                 style={{ flex: 1, fontSize: 14 }}
                 min={1}
               />
-              <div style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>for loss prize</div>
+              <div style={{ fontSize: 13, color: 'var(--text3)', flexShrink: 0 }}>for loss prize</div>
             </div>
           </div>
         )}
@@ -334,7 +334,7 @@ function ResultsTab({ teams, items, toast }) {
         {isOpen && isOut && (
           <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
             <button
-              style={{ width: '100%', padding: 9, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text2)', fontFamily: 'var(--font-head)', fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
+              style={{ width: '100%', padding: 9, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text2)', fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
               onClick={() => undoElim(team)}
               disabled={saving}
             >
@@ -396,9 +396,9 @@ function BidLogTab({ items, teams, toast }) {
   return (
     <div style={{ overflowY: 'auto', flex: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)' }}>
-        <span style={{ fontSize: 11, color: 'var(--text3)' }}>Total entered</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--accent)' }}>${pot.toLocaleString()}</span>
-        <span style={{ fontSize: 11, color: 'var(--text2)' }}>{soldItems.length} teams</span>
+        <span style={{ fontSize: 13, color: 'var(--text3)' }}>Total entered</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 17, color: 'var(--accent)' }}>${pot.toLocaleString()}</span>
+        <span style={{ fontSize: 13, color: 'var(--text2)' }}>{soldItems.length} teams</span>
       </div>
 
       {soldItems.length === 0 && (
@@ -416,20 +416,20 @@ function BidLogTab({ items, teams, toast }) {
           <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 10 }}>
             <div className={sc}>{seed}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-head)', fontSize: 14, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {item.display_name}
               </div>
-              <div style={{ fontSize: 11, marginTop: 1 }}>
+              <div style={{ fontSize: 13, marginTop: 1 }}>
                 <span className={`owner-${item.owner}`}>{item.owner}</span>
               </div>
             </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500, color: 'var(--accent)', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 500, color: 'var(--accent)', flexShrink: 0 }}>
               ${item.bid_amount}
             </div>
             <button
               onClick={() => deleteBid(item)}
               disabled={saving === item.id}
-              style={{ width: 24, height: 24, borderRadius: 5, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text3)', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}
+              style={{ width: 24, height: 24, borderRadius: 5, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text3)', fontSize: 13, cursor: 'pointer', flexShrink: 0 }}
             >
               ✕
             </button>
@@ -462,7 +462,7 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
         <h1>ADMIN</h1>
         <div className="subtitle">
           <span style={{ color: 'var(--green)', marginRight: 8 }}>● Logged in</span>
-          <button onClick={() => setAdminAuthed(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>
+          <button onClick={() => setAdminAuthed(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>
             log out
           </button>
         </div>

@@ -80,7 +80,7 @@ html, body {
   line-height: 1;
 }
 .app-header .subtitle {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text2);
   margin-top: 4px;
 }
@@ -110,7 +110,7 @@ html, body {
 .nav-btn .nav-icon { font-size: 17px; }
 .nav-btn .nav-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 13px;
   color: var(--text3);
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -138,7 +138,7 @@ html, body {
   color: var(--accent);
 }
 .stat-lbl {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: .07em;
@@ -149,7 +149,7 @@ html, body {
 .sec-head {
   padding: 12px 20px 5px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: .08em;
@@ -171,7 +171,7 @@ html, body {
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -180,9 +180,9 @@ html, body {
 .seed-3  { background: rgba(46,204,113,.12); color: var(--green); }
 .seed-4  { background: rgba(46,204,113,.08); color: #27ae60; }
 .seed-5, .seed-6, .seed-7, .seed-8 { background: var(--bg3); color: var(--text2); }
-.seed-9, .seed-10, .seed-11        { background: var(--bg3); color: var(--text3); font-size: 9px; }
-.seed-block { background: rgba(231,76,60,.1); color: var(--red); font-size: 8px; }
-.seed-15, .seed-16 { background: var(--bg3); color: var(--text3); font-size: 9px; }
+.seed-9, .seed-10, .seed-11        { background: var(--bg3); color: var(--text3); font-size: 11px; }
+.seed-block { background: rgba(231,76,60,.1); color: var(--red); font-size: 10px; }
+.seed-15, .seed-16 { background: var(--bg3); color: var(--text3); font-size: 11px; }
 
 /* ── Owner color classes ── */
 .owner-ARNEY     { color: #e67e22; }
@@ -214,7 +214,7 @@ html, body {
   background: transparent;
   color: var(--text3);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: .04em;
   cursor: pointer;
   white-space: nowrap;
@@ -262,7 +262,7 @@ html, body {
 /* ── On-block badge ── */
 .on-block-badge {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   color: var(--accent);
   background: rgba(245,166,35,.12);
   padding: 2px 8px;
@@ -341,7 +341,7 @@ html, body {
   background: var(--bg3);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 18px;
 }
 .text-input:focus { outline: none; border-color: var(--accent); }
 .text-input::placeholder { color: var(--text3); }
