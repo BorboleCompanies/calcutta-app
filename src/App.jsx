@@ -69,7 +69,6 @@ const NAV = [
   { id: 'myteams',     icon: '🏀', label: 'My Teams'  },
   { id: 'payouts',     icon: '💰', label: 'Payouts'   },
   { id: 'stats',       icon: '📊', label: 'Stats'     },
-  { id: 'admin',       icon: '✏️', label: 'Admin'     },
 ]
 
 const SCREENS = {
@@ -142,6 +141,7 @@ export default function App() {
     items, teams, standings, pot,
     selectedOwner, setSelectedOwner,
     goToOwner,
+    goToAdmin: () => setScreen('admin'),
     adminAuthed, setAdminAuthed,
     reload: loadData,
     toast: fireToast,

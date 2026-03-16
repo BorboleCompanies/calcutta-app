@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import AppHeader from '../components/AppHeader'
 
 const OWNERS = ['ARNEY','BEARS','HOSLEY','HOUTCHENS','LEONE','RITER','RITSICK','SIKMA','VARELA','WALLACE']
 const ROUNDS  = ['R64','R32','S16','E8','F4','CHM']
@@ -206,7 +207,7 @@ function TeamCard({ team, items, allTeams, dimmed = false }) {
   )
 }
 
-export default function MyTeams({ items, teams, standings, selectedOwner, setSelectedOwner }) {
+export default function MyTeams({ items, teams, standings, selectedOwner, setSelectedOwner, goToAdmin, adminAuthed }) {
   const defaultOwner = selectedOwner || standings[0]?.owner || OWNERS[0]
   const [selected, setSelected] = useState(defaultOwner)
 
@@ -229,9 +230,7 @@ export default function MyTeams({ items, teams, standings, selectedOwner, setSel
 
   return (
     <>
-      <div className="app-header">
-        <h1>MY TEAMS</h1>
-      </div>
+      <AppHeader title="MY TEAMS" goToAdmin={goToAdmin} adminAuthed={adminAuthed} />
 
       <div className="filter-row">
         {pillOwners.map(o => (

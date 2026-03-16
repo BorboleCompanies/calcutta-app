@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 
 const OWNERS = ['ARNEY','BEARS','HOSLEY','HOUTCHENS','LEONE','RITER','RITSICK','SIKMA','VARELA','WALLACE']
@@ -441,6 +441,281 @@ function BidLogTab({ items, teams, toast }) {
   )
 }
 
+// ── Order Tab ─────────────────────────────────────────────────
+// Touch-friendly drag-and-drop reorder for the auction sequence.
+// Only unsold items can be reordered. Sold items are locked.
+
+function OrderTab({ items, toast }) {
+  // Build local ordered list from items, sorted by auction_order
+  const unsold = items.filter(i => !i.owner).sort((a, b) => a.auction_order - b.auction_order)
+  const sold   = items.filter(i =>  i.owner).sort((a, b) => a.auction_order - b.auction_order)
+
+  const [order,   setOrder]   = useState(() => unsold.map(i => ({ ...i })))
+  const [dirty,   setDirty]   = useState(false)
+  const [saving,  setSaving]  = useState(false)
+  const [dragIdx, setDragIdx] = useState(null)   // index being dragged
+  const [overIdx, setOverIdx] = useState(null)   // index being hovered over
+
+  // Pointer-based drag state
+  const dragRef    = useRef(null)   // the element being dragged (clone)
+  const startY     = useRef(0)
+  const startIdx   = useRef(null)
+  const listRef    = useRef(null)
+
+  // ── Pointer drag handlers ──────────────────────────────────
+  const onPointerDown = useCallback((e, idx) => {
+    e.preventDefault()
+    startIdx.current = idx
+    startY.current   = e.clientY
+    setDragIdx(idx)
+
+    // Clone the row as a floating ghost
+    const row    = e.currentTarget.closest('.order-row')
+    const clone  = row.cloneNode(true)
+    const rect   = row.getBoundingClientRect()
+    clone.style.cssText = `
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: ${rect.width}px; left: ${rect.left}px; top: ${rect.top}px;
+      opacity: 0.92; border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      background: var(--bg3); border: 1.5px solid var(--accent);
+    `
+    document.body.appendChild(clone)
+    dragRef.current = clone
+
+    const onMove = (ev) => {
+      const y = ev.touches ? ev.touches[0].clientY : ev.clientY
+      clone.style.top = (rect.top + (y - startY.current)) + 'px'
+
+      // Find which row we're over
+      const list = listRef.current
+      if (!list) return
+      const rows = list.querySelectorAll('.order-row')
+      let over = startIdx.current
+      rows.forEach((r, i) => {
+        const rb = r.getBoundingClientRect()
+        if (y > rb.top + rb.height * 0.3 && y < rb.bottom - rb.height * 0.3) over = i
+      })
+      setOverIdx(over)
+    }
+
+    const onUp = (ev) => {
+      const y = ev.changedTouches ? ev.changedTouches[0].clientY : ev.clientY
+      if (dragRef.current) {
+        dragRef.current.remove()
+        dragRef.current = null
+      }
+      // Commit the reorder
+      const from = startIdx.current
+      setOrder(prev => {
+        // Calculate final target index
+        const list = listRef.current
+        if (!list) return prev
+        const rows = list.querySelectorAll('.order-row')
+        let to = from
+        rows.forEach((r, i) => {
+          const rb = r.getBoundingClientRect()
+          if (y > rb.top + rb.height * 0.3 && y < rb.bottom - rb.height * 0.3) to = i
+        })
+        if (to === from) return prev
+        const next = [...prev]
+        const [moved] = next.splice(from, 1)
+        next.splice(to, 0, moved)
+        setDirty(true)
+        return next
+      })
+      setDragIdx(null)
+      setOverIdx(null)
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup',   onUp)
+      document.removeEventListener('touchmove',   onMove)
+      document.removeEventListener('touchend',    onUp)
+    }
+
+    document.addEventListener('pointermove', onMove, { passive: true })
+    document.addEventListener('pointerup',   onUp)
+    document.addEventListener('touchmove',   onMove, { passive: true })
+    document.addEventListener('touchend',    onUp)
+  }, [])
+
+  // ── Save to Supabase ───────────────────────────────────────
+  const saveOrder = async () => {
+    setSaving(true)
+    // Reassign auction_order: sold items keep their current numbers,
+    // unsold items get renumbered starting from the first unsold slot.
+    // Strategy: interleave sold (locked) and unsold (reordered) by
+    // preserving the relative position of sold items and filling gaps.
+
+    // Collect all items with their desired final auction_order
+    // Sold items are already in place; we just need to number the unsold
+    // items in the new sequence, fitting around the sold items.
+
+    // Build full merged order: sold items occupy their original positions,
+    // unsold items fill in around them in new sequence order.
+    const allSorted  = [...items].sort((a, b) => a.auction_order - b.auction_order)
+    const soldOrders = sold.map(i => i.auction_order)  // positions to keep
+
+    // Build new order array: place sold items at their locked positions,
+    // fill remaining positions with the reordered unsold items
+    const total     = items.length
+    const newOrders = new Array(total)
+    const soldSet   = new Set(soldOrders)
+
+    // Fill sold positions first
+    sold.forEach(i => { newOrders[i.auction_order - 1] = i.id })
+
+    // Fill remaining positions with unsold in new sequence
+    let unsoldIdx = 0
+    for (let pos = 0; pos < total; pos++) {
+      if (!newOrders[pos]) {
+        newOrders[pos] = order[unsoldIdx]?.id
+        unsoldIdx++
+      }
+    }
+
+    // Build updates: id → new auction_order (1-based)
+    const updates = newOrders
+      .map((id, pos) => ({ id, auction_order: pos + 1 }))
+      .filter(u => u.id != null)
+
+    // Batch update via upsert
+    const { error } = await supabase
+      .from('auction_items')
+      .upsert(updates, { onConflict: 'id' })
+
+    setSaving(false)
+    if (error) {
+      toast('Error saving order')
+      console.error(error)
+    } else {
+      toast('Auction order saved!')
+      setDirty(false)
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      {/* Info bar */}
+      <div style={{ padding: '10px 16px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div>
+          <div style={{ fontSize: 14, color: 'var(--text2)' }}>
+            {order.length} unsold · {sold.length} locked
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
+            Hold &amp; drag ☰ to reorder
+          </div>
+        </div>
+        {dirty && (
+          <button
+            className="btn-primary"
+            onClick={saveOrder}
+            disabled={saving}
+            style={{ width: 'auto', padding: '9px 18px', fontSize: 15 }}
+          >
+            {saving ? 'SAVING...' : 'SAVE ORDER'}
+          </button>
+        )}
+      </div>
+
+      {/* Unsold items — draggable */}
+      <div style={{ flex: 1, overflowY: 'auto' }} ref={listRef}>
+        {order.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">✅</div>
+            <div className="empty-text">All items sold — nothing to reorder</div>
+          </div>
+        )}
+
+        {order.map((item, idx) => {
+          const isDragging = dragIdx === idx
+          const isOver     = overIdx === idx && overIdx !== dragIdx
+          return (
+            <div
+              key={item.id}
+              className="order-row"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 16px',
+                borderBottom: '1px solid rgba(42,47,61,.5)',
+                background: isOver    ? 'rgba(245,166,35,.08)'
+                          : isDragging ? 'rgba(255,255,255,.04)'
+                          : 'transparent',
+                borderTop: isOver ? '2px solid var(--accent)' : '2px solid transparent',
+                opacity: isDragging ? 0.4 : 1,
+                transition: 'background .1s, border-color .1s',
+                userSelect: 'none',
+                touchAction: 'none',
+              }}
+            >
+              {/* Position number */}
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, flexShrink: 0, textAlign: 'right' }}>
+                {idx + 1}
+              </div>
+
+              {/* Name */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {item.display_name}
+                </div>
+                {item.is_block && (
+                  <div style={{ fontSize: 12, color: 'var(--red)', marginTop: 1 }}>12–14 block</div>
+                )}
+              </div>
+
+              {/* Drag handle */}
+              <div
+                onPointerDown={e => onPointerDown(e, idx)}
+                style={{
+                  padding: '8px 6px', cursor: 'grab', flexShrink: 0,
+                  color: 'var(--text3)', fontSize: 18, lineHeight: 1,
+                  touchAction: 'none', userSelect: 'none',
+                }}
+              >
+                ☰
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Sold items — locked */}
+        {sold.length > 0 && (
+          <>
+            <div className="sec-head">
+              <span>Sold · locked in place ({sold.length})</span>
+            </div>
+            {sold.map(item => (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 16px',
+                  borderBottom: '1px solid rgba(42,47,61,.4)',
+                  opacity: 0.45,
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, textAlign: 'right', flexShrink: 0 }}>
+                  {item.auction_order}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.display_name}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>
+                    <span className={`owner-${item.owner}`}>{item.owner}</span> · ${item.bid_amount}
+                  </div>
+                </div>
+                <div style={{ fontSize: 16, color: 'var(--text3)', flexShrink: 0 }}>🔒</div>
+              </div>
+            ))}
+          </>
+        )}
+        <div style={{ height: 16 }} />
+      </div>
+    </div>
+  )
+}
+
 // ── Admin shell ───────────────────────────────────────────────
 export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast }) {
   const [tab, setTab] = useState('bids')
@@ -448,9 +723,7 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
   if (!adminAuthed) {
     return (
       <>
-        <div className="app-header">
-          <h1>ADMIN</h1>
-        </div>
+        <div className="app-header"><h1>ADMIN</h1></div>
         <PasswordGate onAuth={setAdminAuthed} />
       </>
     )
@@ -458,25 +731,29 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="app-header">
-        <h1>ADMIN</h1>
-        <div className="subtitle">
-          <span style={{ color: 'var(--green)', marginRight: 8 }}>● Logged in</span>
-          <button onClick={() => setAdminAuthed(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>
-            log out
-          </button>
+      <div className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h1>ADMIN</h1>
+          <div className="subtitle">
+            <span style={{ color: 'var(--green)', marginRight: 8 }}>● Logged in</span>
+          </div>
         </div>
+        <button onClick={() => setAdminAuthed(false)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text3)', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-mono)', padding: '5px 10px', flexShrink: 0 }}>
+          log out
+        </button>
       </div>
 
-      <div className="tab-row">
-        <button className={`tab-btn ${tab === 'bids'    ? 'active' : ''}`} onClick={() => setTab('bids')}>Enter Bids</button>
-        <button className={`tab-btn ${tab === 'results' ? 'active' : ''}`} onClick={() => setTab('results')}>Results</button>
-        <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}>Bid Log</button>
+      <div className="tab-row" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none' }}>
+        <button className={`tab-btn ${tab === 'bids'    ? 'active' : ''}`} onClick={() => setTab('bids')}    style={{ whiteSpace: 'nowrap' }}>Enter Bids</button>
+        <button className={`tab-btn ${tab === 'results' ? 'active' : ''}`} onClick={() => setTab('results')} style={{ whiteSpace: 'nowrap' }}>Results</button>
+        <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}     style={{ whiteSpace: 'nowrap' }}>Bid Log</button>
+        <button className={`tab-btn ${tab === 'order'   ? 'active' : ''}`} onClick={() => setTab('order')}   style={{ whiteSpace: 'nowrap' }}>Auction Order</button>
       </div>
 
       {tab === 'bids'    && <BidsTab    items={items} teams={teams} toast={toast} />}
       {tab === 'results' && <ResultsTab items={items} teams={teams} toast={toast} />}
       {tab === 'log'     && <BidLogTab  items={items} teams={teams} toast={toast} />}
+      {tab === 'order'   && <OrderTab   items={items} toast={toast} />}
     </div>
   )
 }

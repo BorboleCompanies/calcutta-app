@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { potTotal } from '../App'
+import AppHeader from '../components/AppHeader'
 
 const SEED_AVG = {
   1:197, 2:118, 3:80, 4:62, 5:53, 6:41, 7:35, 8:35,
@@ -22,7 +23,7 @@ function buildRows(items) {
   }))
 }
 
-export default function AuctionBoard({ items, teams }) {
+export default function AuctionBoard({ items, teams, goToAdmin, adminAuthed }) {
   const [filter, setFilter]   = useState('all')
   const prevFlash = useRef(null)
   const [flashId, setFlashId] = useState(null)
@@ -66,15 +67,13 @@ export default function AuctionBoard({ items, teams }) {
   return (
     <>
       {/* Header */}
-      <div className="app-header">
-        <h1>
-          <span style={{ fontSize: 16, fontWeight: 400, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: '.1em', display: 'block', marginBottom: 2 }}>
-            <span className="live-dot" style={{ marginRight: 5 }} />LIVE AUCTION
-          </span>
-          AUCTION BOARD
-        </h1>
-        <div className="subtitle">{sold} of {items.length} teams sold · ${pot.toLocaleString()} in pot</div>
-      </div>
+      <AppHeader
+        title="AUCTION BOARD"
+        subtitle={`${sold} of ${items.length} teams sold · $${pot.toLocaleString()} in pot`}
+        liveIndicator
+        goToAdmin={goToAdmin}
+        adminAuthed={adminAuthed}
+      />
 
       {/* Stats */}
       <div className="stats-strip">

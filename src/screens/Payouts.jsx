@@ -1,3 +1,4 @@
+import AppHeader from '../components/AppHeader'
 import { payoutForWins } from '../App'
 
 const PAYOUT_ROWS = [
@@ -20,7 +21,7 @@ const SEED_HISTORY = [
   { label: '#15 seed',   avg:  18, roi: -30, note: 'Usually too expensive' },
 ]
 
-export default function Payouts({ items, teams, standings, pot }) {
+export default function Payouts({ items, teams, standings, pot, goToAdmin, adminAuthed }) {
   // Find largest loss margin winner
   const biggestLoser = [...teams]
     .filter(t => t.loss_margin > 0)
@@ -32,10 +33,7 @@ export default function Payouts({ items, teams, standings, pot }) {
 
   return (
     <>
-      <div className="app-header">
-        <h1>PAYOUTS</h1>
-        <div className="subtitle">Based on ${pot.toLocaleString()} pot</div>
-      </div>
+      <AppHeader title="PAYOUTS" subtitle={`Based on $${pot.toLocaleString()} pot`} goToAdmin={goToAdmin} adminAuthed={adminAuthed} />
 
       {/* Champion hero */}
       <div style={{

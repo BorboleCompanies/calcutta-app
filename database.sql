@@ -3,6 +3,31 @@
 -- Paste this ENTIRE file into Supabase SQL Editor → Run
 -- ============================================================
 
+-- ============================================================
+-- ⚠️  BRACKET UPDATE — Run these FIRST once the bracket is set
+-- Replace each placeholder with the actual team name.
+-- For play-in games use slash format: 'Team A/Team B'
+-- Once a play-in winner is known, update to just that team name.
+-- ============================================================
+-- update auction_items    set display_name = 'Drake/Winthrop'     where display_name = '11 Seed Play-In (East)';
+-- update tournament_teams set name         = 'Drake/Winthrop'     where name         = '11 Seed Play-In (East)';
+--
+-- update auction_items    set display_name = 'Bryant/Lehigh'      where display_name = '16 Seed Play-In (East)';
+-- update tournament_teams set name         = 'Bryant/Lehigh'      where name         = '16 Seed Play-In (East)';
+--
+-- update auction_items    set display_name = 'SIU Edwardsville'   where display_name = '15 Seed (East)';
+-- update tournament_teams set name         = 'SIU Edwardsville'   where name         = '15 Seed (East)';
+--
+-- update tournament_teams set name = 'Actual 12 Name' where name = '12 Seed (East)';
+-- update tournament_teams set name = 'Actual 13 Name' where name = '13 Seed (East)';
+-- update tournament_teams set name = 'Actual 14 Name' where name = '14 Seed (East)';
+-- update tournament_teams set name = 'Actual 13 Name' where name = '13 Seed (South)';
+-- update tournament_teams set name = 'Actual 14 Name' where name = '14 Seed (South)';
+--
+-- update auction_items    set display_name = 'Actual 15 Name'     where display_name = '15 Seed (South)';
+-- update tournament_teams set name         = 'Actual 15 Name'     where name         = '15 Seed (South)';
+-- ============================================================
+
 -- Clean slate (safe to re-run)
 drop table if exists tournament_teams cascade;
 drop table if exists auction_items cascade;
@@ -99,7 +124,7 @@ insert into auction_items (auction_order, display_name) values
   (37, 'Villanova'),
   (38, 'Virginia'),
   (39, 'Wisconsin'),
-  (40, 'East 11 Seed TBD');  -- ⚠️ Update with actual team
+  (40, '11 Seed Play-In (East)');  -- ⚠️ Update with actual teams e.g. 'Drake/Winthrop'
 
 -- Block (ID 41)
 insert into auction_items (auction_order, display_name, is_block) values
@@ -107,12 +132,12 @@ insert into auction_items (auction_order, display_name, is_block) values
 
 -- Seeds 15-16 alphabetical (IDs 42-49)
 insert into auction_items (auction_order, display_name) values
-  (42, 'East 15 TBD'),           -- ⚠️ Update
-  (43, 'East 16 TBD'),           -- ⚠️ Update
+  (42, '15 Seed (East)'),           -- ⚠️ Update with actual team
+  (43, '16 Seed Play-In (East)'),   -- ⚠️ Update with actual teams e.g. 'Bryant/Lehigh'
   (44, 'LIU'),
   (45, 'Prairie View A&M/Lehigh'),
   (46, 'Queens'),
-  (47, 'South 15 TBD'),          -- ⚠️ Update
+  (47, '15 Seed (South)'),          -- ⚠️ Update with actual team
   (48, 'Tennessee State'),
   (49, 'UMBC/Howard');
 
@@ -179,9 +204,9 @@ insert into tournament_teams (name, seed, region, auction_item_id) values
   ('Texas A&M',        10, 'South',   29),
   ('South Florida',    11, 'South',   25),
   ('McNeese',          12, 'South',   41),   -- block
-  ('South 13 TBD',     13, 'South',   41),   -- block ⚠️ Update name
-  ('South 14 TBD',     14, 'South',   41),   -- block ⚠️ Update name
-  ('South 15 TBD',     15, 'South',   47),   -- ⚠️ Update name
+  ('South 13 Seed',     13, 'South',   41),   -- block ⚠️ Update name
+  ('South 14 Seed',     14, 'South',   41),   -- block ⚠️ Update name
+  ('15 Seed (South)',   15, 'South',   47),   -- ⚠️ Update name
   ('Prairie View A&M/Lehigh', 16, 'South', 45),
 
   -- EAST
@@ -195,12 +220,12 @@ insert into tournament_teams (name, seed, region, auction_item_id) values
   ('Ohio State',       8,  'East',    20),
   ('TCU',              9,  'East',    27),
   ('UCF',              10, 'East',    32),
-  ('East 11 TBD',      11, 'East',    40),   -- ⚠️ Update name
-  ('East 12 TBD',      12, 'East',    41),   -- block ⚠️ Update name
-  ('East 13 TBD',      13, 'East',    41),   -- block ⚠️ Update name
-  ('East 14 TBD',      14, 'East',    41),   -- block ⚠️ Update name
-  ('East 15 TBD',      15, 'East',    42),   -- ⚠️ Update name
-  ('East 16 TBD',      16, 'East',    43);   -- ⚠️ Update name
+  ('11 Seed Play-In (East)', 11, 'East',    40),   -- ⚠️ Update name
+  ('12 Seed (East)',         12, 'East',    41),   -- block ⚠️ Update name
+  ('13 Seed (East)',         13, 'East',    41),   -- block ⚠️ Update name
+  ('14 Seed (East)',         14, 'East',    41),   -- block ⚠️ Update name
+  ('15 Seed (East)',         15, 'East',    42),   -- ⚠️ Update name
+  ('16 Seed Play-In (East)', 16, 'East',    43);   -- ⚠️ Update name
 
 -- ============================================================
 -- DONE. To update any "TBD" team names after bracket is set:

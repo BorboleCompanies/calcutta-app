@@ -1,15 +1,13 @@
 import { potTotal } from '../App'
+import AppHeader from '../components/AppHeader'
 
-export default function Leaderboard({ items, standings, pot, goToOwner }) {
+export default function Leaderboard({ items, standings, pot, goToOwner, goToAdmin, adminAuthed }) {
   const soldCount  = items.filter(i => i.bid_amount).length
   const aliveCount = standings.reduce((s, o) => s + o.alive, 0)
 
   return (
     <>
-      <div className="app-header">
-        <h1>LEADERBOARD</h1>
-        <div className="subtitle">{aliveCount} teams still alive · ${pot.toLocaleString()} pot</div>
-      </div>
+      <AppHeader title="LEADERBOARD" subtitle={`${aliveCount} teams still alive · $${pot.toLocaleString()} pot`} goToAdmin={goToAdmin} adminAuthed={adminAuthed} />
 
       {/* Pot strip */}
       <div className="stats-strip">
