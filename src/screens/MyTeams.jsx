@@ -161,7 +161,7 @@ function MatchupStrip({ team, items, allTeams }) {
             <span style={{ fontSize: 13, color: 'var(--text3)', flexShrink: 0, width: 18, fontFamily: 'var(--font-mono)' }}>
               {idx === 0 ? 'vs' : 'or'}
             </span>
-            <span style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text2)', letterSpacing: '.02em', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               ({opp.seed}) {opp.name}
             </span>
             {oOwner

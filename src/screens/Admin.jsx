@@ -222,148 +222,175 @@ function BidsTab({ items, teams, toast }) {
   )
 }
 
-// ── Update Results tab ────────────────────────────────────────
-function ResultsTab({ teams, items, toast }) {
-  const [expanded, setExpanded]     = useState(null)
-  const [lossMargin, setLossMargin] = useState('')
-  const [saving, setSaving]         = useState(false)
+// ── Bracket constants ────────────────────────────────────────
+const POD_A = [1,16,8,9], POD_B = [5,12,4,13]
+const POD_C = [6,11,3,14], POD_D = [7,10,2,15]
+const TOP_HALF   = [...POD_A,...POD_B], BOT_HALF = [...POD_C,...POD_D]
+const R64_PAIRS  = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]]
+const REGIONS    = ['Midwest','West','South','East']
+const FF_PAIRS   = [['South','Midwest'],['East','West']]
+const ROUND_LABELS = ['Round of 64','Round of 32','Sweet 16','Elite 8','Final Four','Championship']
 
-  const alive = teams.filter(t => !t.eliminated).sort((a,b) => a.seed - b.seed || a.name.localeCompare(b.name))
-  const out   = teams.filter(t =>  t.eliminated).sort((a,b) => b.wins - a.wins || a.name.localeCompare(b.name))
-
-  // Get owner for a team
-  const ownerOf = (team) => items.find(i => i.id === team.auction_item_id)?.owner ?? '—'
-
-  const recordWin = async (team) => {
-    setSaving(true)
-    const { error } = await supabase
-      .from('tournament_teams')
-      .update({ wins: team.wins + 1 })
-      .eq('id', team.id)
-    setSaving(false)
-    if (error) toast('Error saving')
-    else { toast(`${team.name} +1 win`); setExpanded(null) }
+function getActiveMatchups(teams) {
+  const alive = teams.filter(t => !t.eliminated)
+  const matchups = []
+  for (const region of REGIONS) {
+    const rt = alive.filter(t => t.region === region)
+    for (const [s1,s2] of R64_PAIRS) {
+      const a = rt.find(t => t.seed===s1 && t.wins===0)
+      const b = rt.find(t => t.seed===s2 && t.wins===0)
+      if (a && b) matchups.push({ round:0, label:'Round of 64', region, a, b })
+    }
+    for (const pod of [POD_A,POD_B,POD_C,POD_D]) {
+      const pair = rt.filter(t => pod.includes(t.seed) && t.wins===1)
+      if (pair.length===2) matchups.push({ round:1, label:'Round of 32', region, a:pair[0], b:pair[1] })
+    }
+    const top2 = rt.filter(t => TOP_HALF.includes(t.seed) && t.wins===2)
+    if (top2.length===2) matchups.push({ round:2, label:'Sweet 16', region, a:top2[0], b:top2[1] })
+    const bot2 = rt.filter(t => BOT_HALF.includes(t.seed) && t.wins===2)
+    if (bot2.length===2) matchups.push({ round:2, label:'Sweet 16', region, a:bot2[0], b:bot2[1] })
+    const e8 = rt.filter(t => t.wins===3)
+    if (e8.length===2) matchups.push({ round:3, label:'Elite 8', region, a:e8[0], b:e8[1] })
   }
+  for (const [r1,r2] of FF_PAIRS) {
+    const a = alive.find(t => t.region===r1 && t.wins===4)
+    const b = alive.find(t => t.region===r2 && t.wins===4)
+    if (a && b) matchups.push({ round:4, label:'Final Four', region:`${r1} / ${r2}`, a, b })
+  }
+  const fin = alive.filter(t => t.wins===5)
+  if (fin.length===2) matchups.push({ round:5, label:'Championship', region:'National Championship', a:fin[0], b:fin[1] })
+  return matchups
+}
 
-  const recordLoss = async (team) => {
-    const margin = parseInt(lossMargin) || 0
-    setSaving(true)
-    const { error } = await supabase
-      .from('tournament_teams')
-      .update({ eliminated: true, loss_margin: margin })
-      .eq('id', team.id)
-    setSaving(false)
-    if (error) toast('Error saving')
-    else { toast(`${team.name} eliminated`); setExpanded(null); setLossMargin('') }
+// ── Results tab — bracket score entry ────────────────────────
+function ResultsTab({ teams, items, toast }) {
+  const [scores,     setScores]     = useState({})
+  const [submitting, setSubmitting] = useState(null)
+
+  const ownerOf = (team) => items.find(i => i.id === team.auction_item_id)?.owner
+  const matchups = getActiveMatchups(teams)
+  const byRound  = {}
+  for (const m of matchups) { (byRound[m.label] ??= []).push(m) }
+
+  const setScore = (id, val) => setScores(prev => ({ ...prev, [id]: val }))
+
+  const submitGame = async (m) => {
+    const sa = parseInt(scores[m.a.id]), sb = parseInt(scores[m.b.id])
+    if (isNaN(sa)||isNaN(sb)||sa<0||sb<0) return
+    if (sa===sb) { toast('Scores must differ'); return }
+    const winner = sa>sb ? m.a : m.b
+    const loser  = sa>sb ? m.b : m.a
+    const margin = Math.abs(sa-sb)
+    const key    = `${m.a.id}-${m.b.id}`
+    setSubmitting(key)
+    const [r1,r2] = await Promise.all([
+      supabase.from('tournament_teams').update({ wins: winner.wins+1 }).eq('id', winner.id),
+      supabase.from('tournament_teams').update({ eliminated:true, loss_margin:margin }).eq('id', loser.id),
+    ])
+    setSubmitting(null)
+    if (r1.error||r2.error) { toast('Error saving result'); return }
+    toast(`${winner.name} advances!`)
+    setScores(prev => { const n={...prev}; delete n[m.a.id]; delete n[m.b.id]; return n })
   }
 
   const undoElim = async (team) => {
-    setSaving(true)
     const { error } = await supabase
-      .from('tournament_teams')
-      .update({ eliminated: false, wins: Math.max(0, team.wins - 0), loss_margin: 0 })
-      .eq('id', team.id)
-    setSaving(false)
+      .from('tournament_teams').update({ eliminated:false, loss_margin:0 }).eq('id', team.id)
     if (error) toast('Error')
     else toast(`${team.name} restored`)
   }
 
-  const TeamRow = ({ team, isOut }) => {
-    const isOpen = expanded === team.id
-    const owner  = ownerOf(team)
-    const sc     = team.seed <= 11 ? `seed-badge seed-${team.seed}` : 'seed-badge seed-16'
-
-    return (
-      <div style={{ margin: '4px 16px', borderRadius: 10, background: 'var(--bg2)', border: '1px solid var(--border)', overflow: 'hidden', opacity: isOut ? .55 : 1 }}>
-        <div
-          style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', gap: 10, cursor: 'pointer' }}
-          onClick={() => setExpanded(isOpen ? null : team.id)}
-        >
-          <div className={sc}>{team.seed}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em' }}>
-              {team.name}
-            </div>
-            <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>
-              <span className={`owner-${owner}`}>{owner}</span>
-              {' · '}
-              {team.wins} win{team.wins !== 1 ? 's' : ''}
-              {isOut && team.loss_margin > 0 && ` · lost by ${team.loss_margin}`}
-            </div>
-          </div>
-          <div style={{ color: 'var(--text3)', fontSize: 14 }}>{isOpen ? '▲' : '▼'}</div>
-        </div>
-
-        {/* Expanded controls */}
-        {isOpen && !isOut && (
-          <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-              <button
-                className="btn-outline"
-                style={{ flex: 1, background: 'transparent', borderColor: 'var(--green)', color: 'var(--green)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
-                onClick={() => recordWin(team)}
-                disabled={saving}
-              >
-                + WIN
-              </button>
-              <button
-                className="btn-outline"
-                style={{ flex: 1, background: 'transparent', borderColor: 'var(--red)', color: 'var(--red)', padding: '10px', borderRadius: 8, fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
-                onClick={() => recordLoss(team)}
-                disabled={saving}
-              >
-                ELIMINATED
-              </button>
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input
-                className="text-input"
-                type="number"
-                placeholder="Loss margin (optional)"
-                value={lossMargin}
-                onChange={e => setLossMargin(e.target.value)}
-                style={{ flex: 1, fontSize: 14 }}
-                min={1}
-              />
-              <div style={{ fontSize: 13, color: 'var(--text3)', flexShrink: 0 }}>for loss prize</div>
-            </div>
-          </div>
-        )}
-
-        {/* Undo for eliminated */}
-        {isOpen && isOut && (
-          <div style={{ padding: '0 14px 14px', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-            <button
-              style={{ width: '100%', padding: 9, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text2)', fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 700, cursor: 'pointer', letterSpacing: '.04em' }}
-              onClick={() => undoElim(team)}
-              disabled={saving}
-            >
-              UNDO ELIMINATION
-            </button>
-          </div>
-        )}
-      </div>
-    )
-  }
+  const eliminated = [...teams].filter(t => t.eliminated)
+    .sort((a,b) => b.wins-a.wins || a.name.localeCompare(b.name))
 
   return (
-    <div style={{ overflowY: 'auto', flex: 1 }}>
-      <div className="sec-head"><span>Alive ({alive.length})</span><span style={{ color: 'var(--text3)', fontSize: 10 }}>Tap to update</span></div>
-      {alive.length === 0 && (
+    <div style={{ overflowY:'auto', flex:1 }}>
+      {matchups.length===0 && eliminated.length===0 && (
         <div className="empty-state">
           <div className="empty-icon">🏀</div>
-          <div className="empty-text">Tournament hasn't started yet, or all teams are eliminated</div>
+          <div className="empty-text">Games appear here once the tournament starts</div>
         </div>
       )}
-      {alive.map(t => <TeamRow key={t.id} team={t} isOut={false} />)}
 
-      {out.length > 0 && (
+      {ROUND_LABELS.map(label => {
+        const games = byRound[label]
+        if (!games?.length) return null
+        return (
+          <div key={label}>
+            <div className="sec-head"><span>{label}</span><span>{games.length} game{games.length!==1?'s':''}</span></div>
+            {games.map(m => {
+              const key = `${m.a.id}-${m.b.id}`
+              const sa = scores[m.a.id]??'', sb = scores[m.b.id]??''
+              const saNum=parseInt(sa), sbNum=parseInt(sb)
+              const valid = !isNaN(saNum)&&!isNaN(sbNum)&&saNum>=0&&sbNum>=0&&saNum!==sbNum
+              const winnerName = valid ? (saNum>sbNum ? m.a.name : m.b.name) : null
+              const isSub = submitting===key
+              return (
+                <div key={key} style={{ margin:'6px 16px', borderRadius:12, background:'var(--bg2)', border:'1px solid var(--border)', padding:'14px 14px 12px' }}>
+                  <div style={{ fontFamily:'var(--font-mono)', fontSize:11, color:'var(--text3)', textTransform:'uppercase', letterSpacing:'.08em', marginBottom:10 }}>
+                    {m.region}
+                  </div>
+                  <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                    {[m.a,m.b].map((team,idx) => {
+                      const owner = idx===0 ? ownerOf(m.a) : ownerOf(m.b)
+                      return (
+                        <div key={team.id} style={{ flex:1, textAlign:'center' }}>
+                          <div style={{ fontFamily:'var(--font-head)', fontSize:16, fontWeight:700, color:'var(--text)', letterSpacing:'.02em', lineHeight:1.2 }}>{team.name}</div>
+                          <div style={{ fontSize:12, color:'var(--text3)', marginTop:2 }}>#{team.seed}</div>
+                          {owner && <div style={{ fontFamily:'var(--font-head)', fontSize:13, fontWeight:700, letterSpacing:'.04em', marginTop:2 }} className={`owner-${owner}`}>{owner}</div>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                    {[m.a,m.b].map((team,idx) => {
+                      const val = idx===0 ? sa : sb
+                      const hasVal = val!==''&&!isNaN(parseInt(val))
+                      return (
+                        <input key={team.id} type="number" inputMode="numeric" placeholder="—" value={val}
+                          onChange={e => setScore(team.id, e.target.value)}
+                          style={{ flex:1, textAlign:'center', padding:'10px 6px', borderRadius:8,
+                            border:`1.5px solid ${hasVal?'var(--accent)':'var(--border)'}`,
+                            background:'var(--bg3)', color:'var(--text)',
+                            fontFamily:'var(--font-mono)', fontSize:24, fontWeight:500, outline:'none' }}
+                        />
+                      )
+                    })}
+                  </div>
+                  <button className="btn-primary" disabled={!valid||isSub} onClick={() => submitGame(m)} style={{ fontSize:15 }}>
+                    {isSub ? 'SAVING...' : valid ? `${winnerName} WINS` : 'ENTER SCORES'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+
+      {eliminated.length > 0 && (
         <>
-          <div className="sec-head"><span>Eliminated ({out.length})</span></div>
-          {out.map(t => <TeamRow key={t.id} team={t} isOut={true} />)}
+          <div className="sec-head"><span>Completed · tap to undo</span></div>
+          {eliminated.map(team => {
+            const owner = ownerOf(team)
+            const sc = team.seed<=11 ? `seed-badge seed-${team.seed}` : 'seed-badge seed-16'
+            return (
+              <div key={team.id} style={{ display:'flex', alignItems:'center', padding:'9px 16px', borderBottom:'1px solid rgba(42,47,61,.4)', gap:10, opacity:.5, cursor:'pointer' }}
+                onClick={() => undoElim(team)}>
+                <div className={sc}>{team.seed}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:'var(--font-head)', fontSize:15, fontWeight:700, color:'var(--text)', letterSpacing:'.02em' }}>{team.name}</div>
+                  <div style={{ fontSize:12, color:'var(--text3)', marginTop:1 }}>
+                    {team.wins}W · {team.region}{team.loss_margin>0?` · lost by ${team.loss_margin}`:''}
+                    {owner && <span> · <span className={`owner-${owner}`}>{owner}</span></span>}
+                  </div>
+                </div>
+                <div style={{ fontSize:11, color:'var(--text3)', fontFamily:'var(--font-mono)' }}>undo</div>
+              </div>
+            )
+          })}
         </>
       )}
-      <div style={{ height: 16 }} />
+      <div style={{ height:16 }} />
     </div>
   )
 }
@@ -441,212 +468,6 @@ function BidLogTab({ items, teams, toast }) {
   )
 }
 
-// ── Order Tab ─────────────────────────────────────────────────
-// Touch-friendly drag-and-drop reorder for the auction sequence.
-// Only unsold items can be reordered. Sold items are locked.
-
-function OrderTab({ items, toast }) {
-  // Build local ordered list from items, sorted by auction_order
-  const unsold = items.filter(i => !i.owner).sort((a, b) => a.auction_order - b.auction_order)
-  const sold   = items.filter(i =>  i.owner).sort((a, b) => a.auction_order - b.auction_order)
-
-  const [order,   setOrder]   = useState(() => unsold.map(i => ({ ...i })))
-  const [dirty,   setDirty]   = useState(false)
-  const [saving,  setSaving]  = useState(false)
-  const [dragIdx, setDragIdx] = useState(null)
-  const [overIdx, setOverIdx] = useState(null)
-
-  const dragRef  = useRef(null)
-  const startY   = useRef(0)
-  const startIdx = useRef(null)
-  const listRef  = useRef(null)
-
-  const onPointerDown = useCallback((e, idx) => {
-    e.preventDefault()
-    startIdx.current = idx
-    startY.current   = e.clientY
-    setDragIdx(idx)
-
-    const row   = e.currentTarget.closest('.order-row')
-    const clone = row.cloneNode(true)
-    const rect  = row.getBoundingClientRect()
-    clone.style.cssText = `
-      position: fixed; z-index: 9999; pointer-events: none;
-      width: ${rect.width}px; left: ${rect.left}px; top: ${rect.top}px;
-      opacity: 0.92; border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.5);
-      background: var(--bg3); border: 1.5px solid var(--accent);
-    `
-    document.body.appendChild(clone)
-    dragRef.current = clone
-
-    const onMove = (ev) => {
-      const y = ev.touches ? ev.touches[0].clientY : ev.clientY
-      clone.style.top = (rect.top + (y - startY.current)) + 'px'
-      const list = listRef.current
-      if (!list) return
-      const rows = list.querySelectorAll('.order-row')
-      let over = startIdx.current
-      rows.forEach((r, i) => {
-        const rb = r.getBoundingClientRect()
-        if (y > rb.top + rb.height * 0.3 && y < rb.bottom - rb.height * 0.3) over = i
-      })
-      setOverIdx(over)
-    }
-
-    const onUp = (ev) => {
-      const y = ev.changedTouches ? ev.changedTouches[0].clientY : ev.clientY
-      if (dragRef.current) { dragRef.current.remove(); dragRef.current = null }
-      const from = startIdx.current
-      setOrder(prev => {
-        const list = listRef.current
-        if (!list) return prev
-        const rows = list.querySelectorAll('.order-row')
-        let to = from
-        rows.forEach((r, i) => {
-          const rb = r.getBoundingClientRect()
-          if (y > rb.top + rb.height * 0.3 && y < rb.bottom - rb.height * 0.3) to = i
-        })
-        if (to === from) return prev
-        const next = [...prev]
-        const [moved] = next.splice(from, 1)
-        next.splice(to, 0, moved)
-        setDirty(true)
-        return next
-      })
-      setDragIdx(null)
-      setOverIdx(null)
-      document.removeEventListener('pointermove', onMove)
-      document.removeEventListener('pointerup',   onUp)
-      document.removeEventListener('touchmove',   onMove)
-      document.removeEventListener('touchend',    onUp)
-    }
-
-    document.addEventListener('pointermove', onMove, { passive: true })
-    document.addEventListener('pointerup',   onUp)
-    document.addEventListener('touchmove',   onMove, { passive: true })
-    document.addEventListener('touchend',    onUp)
-  }, [])
-
-  const saveOrder = async () => {
-    setSaving(true)
-    const total    = items.length
-    const newOrders = new Array(total)
-    sold.forEach(i => { newOrders[i.auction_order - 1] = i.id })
-    let unsoldIdx = 0
-    for (let pos = 0; pos < total; pos++) {
-      if (!newOrders[pos]) { newOrders[pos] = order[unsoldIdx]?.id; unsoldIdx++ }
-    }
-    const updates = newOrders
-      .map((id, pos) => ({ id, auction_order: pos + 1 }))
-      .filter(u => u.id != null)
-    const { error } = await supabase.from('auction_items').upsert(updates, { onConflict: 'id' })
-    setSaving(false)
-    if (error) { toast('Error saving order'); console.error(error) }
-    else { toast('Auction order saved!'); setDirty(false) }
-  }
-
-  return (
-    <>
-      {/* Info bar */}
-      <div style={{ padding: '10px 16px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <div>
-          <div style={{ fontSize: 14, color: 'var(--text2)' }}>
-            {order.length} unsold · {sold.length} locked
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
-            Hold &amp; drag ☰ to reorder
-          </div>
-        </div>
-        {dirty && (
-          <button
-            className="btn-primary"
-            onClick={saveOrder}
-            disabled={saving}
-            style={{ width: 'auto', padding: '9px 18px', fontSize: 15 }}
-          >
-            {saving ? 'SAVING...' : 'SAVE ORDER'}
-          </button>
-        )}
-      </div>
-
-      {/* Scrollable list — calc height breaks flex chain dependency */}
-      <div style={{ overflowY: 'auto', height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' }} ref={listRef}>
-        {order.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-icon">✅</div>
-            <div className="empty-text">All items sold — nothing to reorder</div>
-          </div>
-        )}
-
-        {order.map((item, idx) => {
-          const isDragging = dragIdx === idx
-          const isOver     = overIdx === idx && overIdx !== dragIdx
-          return (
-            <div
-              key={item.id}
-              className="order-row"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 16px',
-                borderBottom: '1px solid rgba(42,47,61,.5)',
-                background: isOver     ? 'rgba(245,166,35,.08)'
-                          : isDragging ? 'rgba(255,255,255,.04)'
-                          : 'transparent',
-                borderTop: isOver ? '2px solid var(--accent)' : '2px solid transparent',
-                opacity: isDragging ? 0.4 : 1,
-                transition: 'background .1s, border-color .1s',
-                userSelect: 'none',
-                touchAction: 'none',
-              }}
-            >
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, flexShrink: 0, textAlign: 'right' }}>
-                {idx + 1}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {item.display_name}
-                </div>
-                {item.is_block && (
-                  <div style={{ fontSize: 12, color: 'var(--red)', marginTop: 1 }}>12–14 block</div>
-                )}
-              </div>
-              <div
-                onPointerDown={e => onPointerDown(e, idx)}
-                style={{ padding: '8px 6px', cursor: 'grab', flexShrink: 0, color: 'var(--text3)', fontSize: 18, lineHeight: 1, touchAction: 'none', userSelect: 'none' }}
-              >
-                ☰
-              </div>
-            </div>
-          )
-        })}
-
-        {sold.length > 0 && (
-          <>
-            <div className="sec-head"><span>Sold · locked ({sold.length})</span></div>
-            {sold.map(item => (
-              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: '1px solid rgba(42,47,61,.4)', opacity: 0.45 }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text3)', width: 28, textAlign: 'right', flexShrink: 0 }}>
-                  {item.auction_order}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.display_name}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>
-                    <span className={`owner-${item.owner}`}>{item.owner}</span> · ${item.bid_amount}
-                  </div>
-                </div>
-                <div style={{ fontSize: 16, color: 'var(--text3)', flexShrink: 0 }}>🔒</div>
-              </div>
-            ))}
-          </>
-        )}
-        <div style={{ height: 16 }} />
-      </div>
-    </>
-  )
-}
 
 // ── Admin shell ───────────────────────────────────────────────
 export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast }) {
@@ -679,14 +500,12 @@ export default function Admin({ items, teams, adminAuthed, setAdminAuthed, toast
         <button className={`tab-btn ${tab === 'bids'    ? 'active' : ''}`} onClick={() => setTab('bids')}    style={{ whiteSpace: 'nowrap' }}>Enter Bids</button>
         <button className={`tab-btn ${tab === 'results' ? 'active' : ''}`} onClick={() => setTab('results')} style={{ whiteSpace: 'nowrap' }}>Results</button>
         <button className={`tab-btn ${tab === 'log'     ? 'active' : ''}`} onClick={() => setTab('log')}     style={{ whiteSpace: 'nowrap' }}>Bid Log</button>
-        <button className={`tab-btn ${tab === 'order'   ? 'active' : ''}`} onClick={() => setTab('order')}   style={{ whiteSpace: 'nowrap' }}>Auction Order</button>
       </div>
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {tab === 'bids'    && <BidsTab    items={items} teams={teams} toast={toast} />}
         {tab === 'results' && <ResultsTab items={items} teams={teams} toast={toast} />}
         {tab === 'log'     && <BidLogTab  items={items} teams={teams} toast={toast} />}
-        {tab === 'order'   && <OrderTab   items={items} toast={toast} />}
       </div>
     </div>
   )

@@ -327,16 +327,7 @@ function ThisYearTab({ items, teams, standings, pot }) {
       <div className="sec-head"><span>Tournament</span></div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 8px' }}>
 
-        {/* Most wins — owner-level */}
-        <StatCard
-          label="Winning most"
-          value={topOwner?.totalWins > 0 ? topOwner.owner : '—'}
-          valueSub={topOwner?.totalWins > 0 ? `${topOwner.totalWins} total wins` : undefined}
-          sub={topOwner?.alive > 0 ? `${topOwner.alive} teams still alive` : undefined}
-          color="var(--green)"
-        />
-
-        {/* Biggest loss — show margin prominently */}
+        {/* Biggest loss — margin first, team + owner below */}
         <StatCard
           label="Biggest loss"
           value={biggestLoser?.loss_margin > 0 ? `−${biggestLoser.loss_margin}` : '—'}
@@ -345,17 +336,45 @@ function ThisYearTab({ items, teams, standings, pot }) {
           color="var(--red)"
         />
 
+        {/* Still alive */}
         <StatCard
           label="Still alive"
           value={teams.filter(t => !t.eliminated).length}
           sub="teams remaining"
           color="var(--green)"
         />
+
+        {/* Highest gross */}
+        <StatCard
+          label="Highest gross"
+          value={standings.length ? `$${[...standings].sort((a,b)=>b.gross-a.gross)[0].gross.toLocaleString()}` : '—'}
+          valueSub={standings.length ? [...standings].sort((a,b)=>b.gross-a.gross)[0].owner : undefined}
+          color="var(--accent)"
+        />
+
+        {/* Highest net */}
+        <StatCard
+          label="Highest net"
+          value={standings.length ? `+$${Math.max(0,[...standings].sort((a,b)=>b.net-a.net)[0].net).toLocaleString()}` : '—'}
+          valueSub={standings.length ? [...standings].sort((a,b)=>b.net-a.net)[0].owner : undefined}
+          color="var(--green)"
+        />
+
+        {/* Highest ROI */}
+        <StatCard
+          label="Highest ROI"
+          value={standings.length ? `${[...standings].sort((a,b)=>b.roi-a.roi)[0].roi}%` : '—'}
+          valueSub={standings.length ? [...standings].sort((a,b)=>b.roi-a.roi)[0].owner : undefined}
+          color="var(--blue)"
+        />
+
+        {/* Eliminated count */}
         <StatCard
           label="Eliminated"
           value={eliminatedTeams.length}
           sub="teams out"
         />
+
       </div>
 
       {/* Per-owner breakdown */}
