@@ -99,20 +99,7 @@ export default function Payouts({ items, teams, standings, pot }) {
         </div>
       </div>
 
-      {/* Historic seed ROI */}
-      <div className="sec-head"><span>10-year seed ROI (use during auction)</span></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, background: 'var(--border)', margin: '0 16px 16px', borderRadius: 12, overflow: 'hidden' }}>
-        {SEED_HISTORY.map(s => (
-          <div key={s.label} style={{ background: 'var(--bg2)', padding: '10px 14px' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text3)', marginBottom: 3 }}>{s.label}</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>${s.avg} avg</div>
-            <div style={{ fontSize: 11, marginTop: 1, color: s.roi >= 0 ? 'var(--green)' : 'var(--red)' }}>
-              {s.roi >= 0 ? '+' : ''}{s.roi}% ROI
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{s.note}</div>
-          </div>
-        ))}
-      </div>
+      <div style={{ height: 16 }} />
     </>
   )
 }

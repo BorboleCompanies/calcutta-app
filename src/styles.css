@@ -29,9 +29,7 @@ html, body {
   color: var(--text);
   font-family: var(--font-body);
   height: 100%;
-  width: 100%;
   overflow: hidden;
-  position: fixed;
 }
 
 #root {
@@ -47,9 +45,8 @@ html, body {
   flex-direction: column;
   width: 100%;
   max-width: 480px;
-  height: 100vh;
   height: 100svh;
-  height: 100dvh;
+  height: 100vh;
   background: var(--bg);
   position: relative;
 }
@@ -102,9 +99,7 @@ html, body {
   background: var(--bg2);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
-  padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px);
-  position: relative;
-  z-index: 10;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 .nav-btn {
   flex: 1;

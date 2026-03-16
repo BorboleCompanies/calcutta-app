@@ -1,6 +1,6 @@
 import { potTotal } from '../App'
 
-export default function Leaderboard({ items, standings, pot }) {
+export default function Leaderboard({ items, standings, pot, goToOwner }) {
   const soldCount  = items.filter(i => i.bid_amount).length
   const aliveCount = standings.reduce((s, o) => s + o.alive, 0)
 
@@ -33,7 +33,11 @@ export default function Leaderboard({ items, standings, pot }) {
           <div
             key={s.owner}
             className="list-row"
-            style={isLeader ? { background: 'linear-gradient(90deg,rgba(245,166,35,.07),transparent 60%)' } : {}}
+            style={{
+              cursor: 'pointer',
+              ...(isLeader ? { background: 'linear-gradient(90deg,rgba(245,166,35,.07),transparent 60%)' } : {}),
+            }}
+            onClick={() => goToOwner(s.owner)}
           >
             {/* Rank */}
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 20, textAlign: 'center', flexShrink: 0 }}>
@@ -57,13 +61,16 @@ export default function Leaderboard({ items, standings, pot }) {
             </div>
 
             {/* Financials */}
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 500 }} className={s.net > 0 ? 'pos' : s.net < 0 ? 'neg' : 'muted'}>
-                {s.net > 0 ? '+' : ''}{s.net < 0 ? '−' : ''}${Math.abs(s.net).toLocaleString()}
+            <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 500 }} className={s.net > 0 ? 'pos' : s.net < 0 ? 'neg' : 'muted'}>
+                  {s.net > 0 ? '+' : ''}{s.net < 0 ? '−' : ''}${Math.abs(s.net).toLocaleString()}
+                </div>
+                <div style={{ fontSize: 10, marginTop: 2 }} className={s.roi > 0 ? 'pos' : s.roi < 0 ? 'neg' : 'muted'}>
+                  {s.roi > 0 ? '+' : ''}{s.roi}% ROI
+                </div>
               </div>
-              <div style={{ fontSize: 10, marginTop: 2 }} className={s.roi > 0 ? 'pos' : s.roi < 0 ? 'neg' : 'muted'}>
-                {s.roi > 0 ? '+' : ''}{s.roi}% ROI
-              </div>
+              <div style={{ color: 'var(--text3)', fontSize: 12 }}>›</div>
             </div>
           </div>
         )

@@ -4,6 +4,7 @@ import AuctionBoard from './screens/AuctionBoard'
 import Leaderboard  from './screens/Leaderboard'
 import MyTeams      from './screens/MyTeams'
 import Payouts      from './screens/Payouts'
+import Stats        from './screens/Stats'
 import Admin        from './screens/Admin'
 
 // ── Payout rates by wins ──────────────────────────────────────
@@ -67,6 +68,7 @@ const NAV = [
   { id: 'leaderboard', icon: '🏆', label: 'Standings' },
   { id: 'myteams',     icon: '🏀', label: 'My Teams'  },
   { id: 'payouts',     icon: '💰', label: 'Payouts'   },
+  { id: 'stats',       icon: '📊', label: 'Stats'     },
   { id: 'admin',       icon: '✏️', label: 'Admin'     },
 ]
 
@@ -75,6 +77,7 @@ const SCREENS = {
   leaderboard: Leaderboard,
   myteams:     MyTeams,
   payouts:     Payouts,
+  stats:       Stats,
   admin:       Admin,
 }
 
@@ -92,12 +95,19 @@ export function useToast() {
 
 // ── App ───────────────────────────────────────────────────────
 export default function App() {
-  const [screen,      setScreen]      = useState('board')
-  const [items,       setItems]       = useState([])
-  const [teams,       setTeams]       = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [adminAuthed, setAdminAuthed] = useState(false)
-  const [toast,       fireToast]      = useToast()
+  const [screen,        setScreen]        = useState('board')
+  const [selectedOwner, setSelectedOwner] = useState(null)
+  const [items,         setItems]         = useState([])
+  const [teams,         setTeams]         = useState([])
+  const [loading,       setLoading]       = useState(true)
+  const [adminAuthed,   setAdminAuthed]   = useState(false)
+  const [toast,         fireToast]        = useToast()
+
+  // Navigate to My Teams and pre-select an owner from Leaderboard
+  const goToOwner = (owner) => {
+    setSelectedOwner(owner)
+    setScreen('myteams')
+  }
 
   const loadData = useCallback(async () => {
     const [{ data: its, error: e1 }, { data: tms, error: e2 }] = await Promise.all([
@@ -130,6 +140,8 @@ export default function App() {
 
   const sharedProps = {
     items, teams, standings, pot,
+    selectedOwner, setSelectedOwner,
+    goToOwner,
     adminAuthed, setAdminAuthed,
     reload: loadData,
     toast: fireToast,

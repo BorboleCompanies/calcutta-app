@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const OWNERS = ['ARNEY','BEARS','HOSLEY','HOUTCHENS','LEONE','RITER','RITSICK','SIKMA','VARELA','WALLACE']
 const ROUNDS = ['R64','R32','S16','E8','F4','CHM']
 
 function RoundDots({ wins, eliminated }) {
   return (
-    <div className="round-dots" style={{ gap: 3, paddingLeft: 46, paddingTop: 6, paddingBottom: 10, display: 'flex' }}>
+    <div style={{ gap: 3, paddingLeft: 46, paddingTop: 6, paddingBottom: 10, display: 'flex' }}>
       {ROUNDS.map((r, i) => {
         let cls = 'rdot'
         if (i < wins) cls += ' win'
@@ -17,21 +17,26 @@ function RoundDots({ wins, eliminated }) {
   )
 }
 
-export default function MyTeams({ items, teams, standings }) {
-  // Default to whoever is leading
-  const defaultOwner = standings[0]?.owner || OWNERS[0]
+export default function MyTeams({ items, teams, standings, selectedOwner, setSelectedOwner }) {
+  const defaultOwner = selectedOwner || standings[0]?.owner || OWNERS[0]
   const [selected, setSelected] = useState(defaultOwner)
 
-  // Find standing for selected owner
-  const standing = standings.find(s => s.owner === selected)
+  // Sync when navigated here from Leaderboard
+  useEffect(() => {
+    if (selectedOwner) {
+      setSelected(selectedOwner)
+      setSelectedOwner(null)   // clear so future tab taps don't re-override
+    }
+  }, [selectedOwner, setSelectedOwner])
+
+  const standing   = standings.find(s => s.owner === selected)
   const ownerTeams = standing?.teams || []
   const ownerItems = standing?.items || []
   const totalBid   = standing?.totalBid || 0
 
-  const alive   = ownerTeams.filter(t => !t.eliminated)
-  const out     = ownerTeams.filter(t =>  t.eliminated)
+  const alive = ownerTeams.filter(t => !t.eliminated)
+  const out   = ownerTeams.filter(t =>  t.eliminated)
 
-  // Get all owners who have bid on at least one item
   const activeOwners = [...new Set(items.filter(i => i.owner).map(i => i.owner))].sort()
   const pillOwners   = activeOwners.length > 0 ? activeOwners : OWNERS
 
@@ -42,13 +47,16 @@ export default function MyTeams({ items, teams, standings }) {
         <h1>MY TEAMS</h1>
       </div>
 
-      {/* Owner picker */}
+      {/* Owner picker — improved contrast */}
       <div className="filter-row">
         {pillOwners.map(o => (
           <button
             key={o}
             className={`fpill ${selected === o ? 'owner-active' : ''}`}
-            style={selected === o ? { color: '#000' } : {}}
+            style={selected === o
+              ? { color: '#000' }
+              : { color: 'var(--text2)', borderColor: 'var(--bg4)', background: 'var(--bg3)' }
+            }
             onClick={() => setSelected(o)}
           >
             {o}
@@ -71,8 +79,8 @@ export default function MyTeams({ items, teams, standings }) {
           <div className="stat-lbl">Bid</div>
         </div>
         <div className="stat-item">
-          <div className="stat-val" style={{ color: standing?.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
-            {standing ? `${standing.net >= 0 ? '+' : ''}$${Math.abs(standing.net)}` : '—'}
+          <div className="stat-val" style={{ color: standing ? (standing.net >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--accent)' }}>
+            {standing ? `${standing.net >= 0 ? '+' : '−'}$${Math.abs(standing.net)}` : '—'}
           </div>
           <div className="stat-lbl">Net</div>
         </div>
@@ -85,19 +93,13 @@ export default function MyTeams({ items, teams, standings }) {
         </div>
       )}
 
-      {/* Alive teams */}
       {alive.length > 0 && (
-        <div className="sec-head">
-          <span>Still alive ({alive.length})</span>
-        </div>
+        <div className="sec-head"><span>Still alive ({alive.length})</span></div>
       )}
       {alive.map(team => <TeamCard key={team.id} team={team} items={items} />)}
 
-      {/* Eliminated teams */}
       {out.length > 0 && (
-        <div className="sec-head">
-          <span>Eliminated ({out.length})</span>
-        </div>
+        <div className="sec-head"><span>Eliminated ({out.length})</span></div>
       )}
       {out.map(team => <TeamCard key={team.id} team={team} items={items} dimmed />)}
 
@@ -107,12 +109,9 @@ export default function MyTeams({ items, teams, standings }) {
 }
 
 function TeamCard({ team, items, dimmed = false }) {
-  // Get the auction item this team belongs to
-  const item = items.find(i => i.id === team.auction_item_id)
+  const item   = items.find(i => i.id === team.auction_item_id)
   const bidAmt = item?.bid_amount ?? 0
-
-  const seedNum = team.seed
-  const sc = seedNum <= 11 ? `seed-badge seed-${seedNum}` : 'seed-badge seed-16'
+  const sc     = team.seed <= 11 ? `seed-badge seed-${team.seed}` : 'seed-badge seed-16'
 
   return (
     <div style={{ margin: '6px 16px', borderRadius: 12, background: 'var(--bg2)', border: '1px solid var(--border)', overflow: 'hidden', opacity: dimmed ? .5 : 1 }}>
