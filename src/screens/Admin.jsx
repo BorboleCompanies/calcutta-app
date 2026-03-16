@@ -293,11 +293,60 @@ function ResultsTab({ teams, items, toast }) {
     setScores(prev => { const n={...prev}; delete n[m.a.id]; delete n[m.b.id]; return n })
   }
 
-  const undoElim = async (team) => {
-    const { error } = await supabase
-      .from('tournament_teams').update({ eliminated:false, loss_margin:0 }).eq('id', team.id)
-    if (error) toast('Error')
-    else toast(`${team.name} restored`)
+  const undoElim = async (loser) => {
+    // Find the winner: same region, same pod as loser, wins = loser.wins + 1, not eliminated
+    // Pod lookup — which pod does the loser's seed belong to?
+    const ALL_PODS = [POD_A, POD_B, POD_C, POD_D]
+    const loserPod = ALL_PODS.find(pod => pod.includes(loser.seed)) || []
+
+    // For Final Four (wins=4) the winner is in a different region
+    const FF_OPP = { South:'Midwest', Midwest:'South', East:'West', West:'East' }
+
+    let winner = null
+    if (loser.wins === 4) {
+      // Final Four loser — winner is in the paired region
+      const oppRegion = FF_OPP[loser.region]
+      winner = teams.find(t =>
+        !t.eliminated && t.region === oppRegion && t.wins === loser.wins + 1
+      )
+    } else if (loser.wins === 5) {
+      // Championship loser — winner has 6 wins
+      winner = teams.find(t => !t.eliminated && t.wins === 6)
+    } else {
+      // All other rounds: same region, same pod seeds, wins = loser.wins + 1
+      winner = teams.find(t =>
+        !t.eliminated &&
+        t.id !== loser.id &&
+        t.region === loser.region &&
+        loserPod.includes(t.seed) &&
+        t.wins === loser.wins + 1
+      )
+      // Sweet 16 / Elite 8 — winner may be from a different pod in same half
+      if (!winner && loser.wins >= 2) {
+        winner = teams.find(t =>
+          !t.eliminated &&
+          t.id !== loser.id &&
+          t.region === loser.region &&
+          t.wins === loser.wins + 1
+        )
+      }
+    }
+
+    if (!winner) {
+      toast('Could not find the winner to undo — restore manually in Supabase')
+      return
+    }
+
+    const [r1, r2] = await Promise.all([
+      supabase.from('tournament_teams')
+        .update({ eliminated: false, loss_margin: 0 })
+        .eq('id', loser.id),
+      supabase.from('tournament_teams')
+        .update({ wins: winner.wins - 1 })
+        .eq('id', winner.id),
+    ])
+    if (r1.error || r2.error) toast('Error undoing result')
+    else toast(`${loser.name} vs ${winner.name} reversed`)
   }
 
   const eliminated = [...teams].filter(t => t.eliminated)
