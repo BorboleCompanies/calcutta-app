@@ -570,8 +570,8 @@ function OrderTab({ items, toast }) {
         )}
       </div>
 
-      {/* Scrollable list — key fix: explicit overflow-y scroll here */}
-      <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }} ref={listRef}>
+      {/* Scrollable list — calc height breaks flex chain dependency */}
+      <div style={{ overflowY: 'auto', height: 'calc(100dvh - 260px)', WebkitOverflowScrolling: 'touch' }} ref={listRef}>
         {order.length === 0 && (
           <div className="empty-state">
             <div className="empty-icon">✅</div>

@@ -1,48 +1,31 @@
 -- ============================================================
--- FLOG CALCUTTA — Complete Database Setup
+-- FLOG CALCUTTA 2026 — Complete Database Setup
 -- Paste this ENTIRE file into Supabase SQL Editor → Run
 -- ============================================================
 
 -- ============================================================
--- ⚠️  BRACKET UPDATE — Run these FIRST once the bracket is set
--- Replace each placeholder with the actual team name.
--- For play-in games use slash format: 'Team A/Team B'
--- Once a play-in winner is known, update to just that team name.
--- ============================================================
--- update auction_items    set display_name = 'Drake/Winthrop'     where display_name = '11 Seed Play-In (East)';
--- update tournament_teams set name         = 'Drake/Winthrop'     where name         = '11 Seed Play-In (East)';
+-- ⚠️  PLAY-IN GAMES — update these once winners are known:
 --
--- update auction_items    set display_name = 'Bryant/Lehigh'      where display_name = '16 Seed Play-In (East)';
--- update tournament_teams set name         = 'Bryant/Lehigh'      where name         = '16 Seed Play-In (East)';
+-- update auction_items    set display_name = 'UMBC'           where display_name = 'UMBC/Howard';
+-- update tournament_teams set name         = 'UMBC'           where name         = 'UMBC/Howard';
 --
--- update auction_items    set display_name = 'SIU Edwardsville'   where display_name = '15 Seed (East)';
--- update tournament_teams set name         = 'SIU Edwardsville'   where name         = '15 Seed (East)';
+-- update auction_items    set display_name = 'Prairie View'   where display_name = 'Prairie View A&M/Lehigh';
+-- update tournament_teams set name         = 'Prairie View'   where name         = 'Prairie View A&M/Lehigh';
 --
--- update tournament_teams set name = 'Actual 12 Name' where name = '12 Seed (East)';
--- update tournament_teams set name = 'Actual 13 Name' where name = '13 Seed (East)';
--- update tournament_teams set name = 'Actual 14 Name' where name = '14 Seed (East)';
--- update tournament_teams set name = 'Actual 13 Name' where name = '13 Seed (South)';
--- update tournament_teams set name = 'Actual 14 Name' where name = '14 Seed (South)';
---
--- update auction_items    set display_name = 'Actual 15 Name'     where display_name = '15 Seed (South)';
--- update tournament_teams set name         = 'Actual 15 Name'     where name         = '15 Seed (South)';
+-- update auction_items    set display_name = 'Texas'          where display_name = 'Texas/NC State';
+-- update tournament_teams set name         = 'Texas'          where name         = 'Texas/NC State';
 -- ============================================================
 
--- Clean slate (safe to re-run)
 drop table if exists tournament_teams cascade;
 drop table if exists auction_items cascade;
-
--- ============================================================
--- TABLES
--- ============================================================
 
 create table auction_items (
   id            serial primary key,
   auction_order int  not null unique,
   display_name  text not null,
   is_block      boolean default false,
-  owner         text,           -- null until sold
-  bid_amount    int             -- null until sold
+  owner         text,
+  bid_amount    int
 );
 
 create table tournament_teams (
@@ -53,34 +36,23 @@ create table tournament_teams (
   auction_item_id int  references auction_items(id),
   wins            int  default 0   not null,
   eliminated      boolean default false not null,
-  loss_margin     int  default 0   not null  -- margin of the game they lost (for largest-loss prize)
+  loss_margin     int  default 0   not null
 );
 
--- ============================================================
--- REAL-TIME (all phones update instantly when admin enters data)
--- ============================================================
 alter publication supabase_realtime add table auction_items;
 alter publication supabase_realtime add table tournament_teams;
 
--- ============================================================
--- SECURITY (allow the app to read/write without a user login)
--- ============================================================
 alter table auction_items    enable row level security;
 alter table tournament_teams enable row level security;
 create policy "public_all" on auction_items    for all using (true) with check (true);
 create policy "public_all" on tournament_teams for all using (true) with check (true);
 
 -- ============================================================
--- AUCTION ITEMS (53 items — inserted in auction order so IDs = 1-53)
---
--- ORDER:
---   1-40  : Seeds 2-11, alphabetical
---   41    : The 12-14 Seed Block (one bid, 12 teams)
---   42-49 : Seeds 15-16, alphabetical
---   50-53 : Seeds 1, alphabetical
---
--- ⚠️  Items marked "TBD" — update the display_name once bracket is set:
---     update auction_items set display_name = 'Actual Team Name' where id = X;
+-- AUCTION ITEMS
+-- Seeds 2-11: all 40 teams alphabetical (auction_order 1-40)
+-- Block 12-14: one item (auction_order 41)
+-- Seeds 15-16: 8 teams alphabetical (auction_order 42-49)
+-- Seeds 1: 4 teams alphabetical (auction_order 50-53)
 -- ============================================================
 
 insert into auction_items (auction_order, display_name) values
@@ -121,10 +93,10 @@ insert into auction_items (auction_order, display_name) values
   (34, 'UConn'),
   (35, 'Utah State'),
   (36, 'Vanderbilt'),
-  (37, 'Villanova'),
+  (37, 'VCU'),
   (38, 'Virginia'),
-  (39, 'Wisconsin'),
-  (40, '11 Seed Play-In (East)');  -- ⚠️ Update with actual teams e.g. 'Drake/Winthrop'
+  (39, 'Villanova'),
+  (40, 'Wisconsin');
 
 -- Block (ID 41)
 insert into auction_items (auction_order, display_name, is_block) values
@@ -132,12 +104,12 @@ insert into auction_items (auction_order, display_name, is_block) values
 
 -- Seeds 15-16 alphabetical (IDs 42-49)
 insert into auction_items (auction_order, display_name) values
-  (42, '15 Seed (East)'),           -- ⚠️ Update with actual team
-  (43, '16 Seed Play-In (East)'),   -- ⚠️ Update with actual teams e.g. 'Bryant/Lehigh'
-  (44, 'LIU'),
+  (42, 'Furman'),
+  (43, 'Idaho'),
+  (44, 'Long Island'),
   (45, 'Prairie View A&M/Lehigh'),
   (46, 'Queens'),
-  (47, '15 Seed (South)'),          -- ⚠️ Update with actual team
+  (47, 'Siena'),
   (48, 'Tennessee State'),
   (49, 'UMBC/Howard');
 
@@ -149,86 +121,82 @@ insert into auction_items (auction_order, display_name) values
   (53, 'Michigan');
 
 -- ============================================================
--- TOURNAMENT TEAMS (all 64 bracket slots)
--- auction_item_id links each slot to who bought it.
--- IDs match the insertion order above (Alabama=1, block=41, etc.)
+-- TOURNAMENT TEAMS — all 64 bracket slots
 -- ============================================================
 
 insert into tournament_teams (name, seed, region, auction_item_id) values
   -- MIDWEST
-  ('Michigan',         1,  'Midwest', 53),
-  ('Iowa State',       2,  'Midwest', 10),
-  ('Virginia',         3,  'Midwest', 38),
-  ('Alabama',          4,  'Midwest',  1),
-  ('Texas Tech',       5,  'Midwest', 30),
-  ('Tennessee',        6,  'Midwest', 28),
-  ('Kentucky',         7,  'Midwest', 12),
-  ('Georgia',          8,  'Midwest',  5),
-  ('Saint Louis',      9,  'Midwest', 22),
-  ('Santa Clara',      10, 'Midwest', 24),
-  ('Miami (Ohio)/SMU', 11, 'Midwest', 15),
-  ('Akron',            12, 'Midwest', 41),   -- block
-  ('Hofstra',          13, 'Midwest', 41),   -- block
-  ('Wright State',     14, 'Midwest', 41),   -- block
-  ('Tennessee State',  15, 'Midwest', 48),
-  ('UMBC/Howard',      16, 'Midwest', 49),
+  ('Michigan',          1,  'Midwest', 53),
+  ('UMBC/Howard',       16, 'Midwest', 49),
+  ('Georgia',           8,  'Midwest',  5),
+  ('Saint Louis',       9,  'Midwest', 22),
+  ('Texas Tech',        5,  'Midwest', 30),
+  ('Akron',             12, 'Midwest', 41),
+  ('Alabama',           4,  'Midwest',  1),
+  ('Hofstra',           13, 'Midwest', 41),
+  ('Tennessee',         6,  'Midwest', 28),
+  ('Miami (Ohio)/SMU',  11, 'Midwest', 15),
+  ('Virginia',          3,  'Midwest', 38),
+  ('Wright State',      14, 'Midwest', 41),
+  ('Kentucky',          7,  'Midwest', 12),
+  ('Santa Clara',       10, 'Midwest', 24),
+  ('Iowa State',        2,  'Midwest', 10),
+  ('Tennessee State',   15, 'Midwest', 48),
 
   -- WEST
-  ('Arizona',          1,  'West',    50),
-  ('Purdue',           2,  'West',    21),
-  ('Gonzaga',          3,  'West',     6),
-  ('Arkansas',         4,  'West',     2),
-  ('Wisconsin',        5,  'West',    39),
-  ('BYU',              6,  'West',     3),
-  ('Miami',            7,  'West',    14),
-  ('Villanova',        8,  'West',    37),
-  ('Utah State',       9,  'West',    35),
-  ('Missouri',         10, 'West',    17),
-  ('Texas/NC State',   11, 'West',    31),
-  ('High Point',       12, 'West',    41),   -- block
-  ('Hawaii',           13, 'West',    41),   -- block
-  ('Kennesaw State',   14, 'West',    41),   -- block
-  ('Queens',           15, 'West',    46),
-  ('LIU',              16, 'West',    44),
+  ('Arizona',           1,  'West',    50),
+  ('Long Island',       16, 'West',    44),
+  ('Villanova',         8,  'West',    39),
+  ('Utah State',        9,  'West',    35),
+  ('Wisconsin',         5,  'West',    40),
+  ('High Point',        12, 'West',    41),
+  ('Arkansas',          4,  'West',     2),
+  ('Hawaii',            13, 'West',    41),
+  ('BYU',               6,  'West',     3),
+  ('Texas/NC State',    11, 'West',    31),
+  ('Gonzaga',           3,  'West',     6),
+  ('Kennesaw State',    14, 'West',    41),
+  ('Miami',             7,  'West',    14),
+  ('Missouri',          10, 'West',    17),
+  ('Purdue',            2,  'West',    21),
+  ('Queens',            15, 'West',    46),
 
   -- SOUTH
-  ('Florida',          1,  'South',   52),
-  ('Houston',          2,  'South',    7),
-  ('Illinois',         3,  'South',    8),
-  ('Nebraska',         4,  'South',   18),
-  ('Vanderbilt',       5,  'South',   36),
-  ('Louisville',       6,  'South',   13),
-  ('Saint Mary''s',    7,  'South',   23),
-  ('Clemson',          8,  'South',    4),
-  ('Iowa',             9,  'South',    9),
-  ('Texas A&M',        10, 'South',   29),
-  ('South Florida',    11, 'South',   25),
-  ('McNeese',          12, 'South',   41),   -- block
-  ('South 13 Seed',     13, 'South',   41),   -- block ⚠️ Update name
-  ('South 14 Seed',     14, 'South',   41),   -- block ⚠️ Update name
-  ('15 Seed (South)',   15, 'South',   47),   -- ⚠️ Update name
+  ('Florida',           1,  'South',   52),
   ('Prairie View A&M/Lehigh', 16, 'South', 45),
+  ('Clemson',           8,  'South',    4),
+  ('Iowa',              9,  'South',    9),
+  ('Vanderbilt',        5,  'South',   36),
+  ('McNeese',           12, 'South',   41),
+  ('Nebraska',          4,  'South',   18),
+  ('Troy',              13, 'South',   41),
+  ('North Carolina',    6,  'South',   19),
+  ('VCU',               11, 'South',   37),
+  ('Illinois',          3,  'South',    8),
+  ('Penn',              14, 'South',   41),
+  ('Saint Mary''s',     7,  'South',   23),
+  ('Texas A&M',         10, 'South',   29),
+  ('Houston',           2,  'South',    7),
+  ('Idaho',             15, 'South',   43),
 
   -- EAST
-  ('Duke',             1,  'East',    51),
-  ('UConn',            2,  'East',    34),
-  ('Michigan State',   3,  'East',    16),
-  ('Kansas',           4,  'East',    11),
-  ('St. John''s',      5,  'East',    26),
-  ('North Carolina',   6,  'East',    19),
-  ('UCLA',             7,  'East',    33),
-  ('Ohio State',       8,  'East',    20),
-  ('TCU',              9,  'East',    27),
-  ('UCF',              10, 'East',    32),
-  ('11 Seed Play-In (East)', 11, 'East',    40),   -- ⚠️ Update name
-  ('12 Seed (East)',         12, 'East',    41),   -- block ⚠️ Update name
-  ('13 Seed (East)',         13, 'East',    41),   -- block ⚠️ Update name
-  ('14 Seed (East)',         14, 'East',    41),   -- block ⚠️ Update name
-  ('15 Seed (East)',         15, 'East',    42),   -- ⚠️ Update name
-  ('16 Seed Play-In (East)', 16, 'East',    43);   -- ⚠️ Update name
+  ('Duke',              1,  'East',    51),
+  ('Siena',             16, 'East',    47),
+  ('Ohio State',        8,  'East',    20),
+  ('TCU',               9,  'East',    27),
+  ('St. John''s',       5,  'East',    26),
+  ('Northern Iowa',     12, 'East',    41),
+  ('Kansas',            4,  'East',    11),
+  ('Cal Baptist',       13, 'East',    41),
+  ('Louisville',        6,  'East',    13),
+  ('South Florida',     11, 'East',    25),
+  ('Michigan State',    3,  'East',    16),
+  ('North Dakota',      14, 'East',    41),
+  ('UCLA',              7,  'East',    33),
+  ('UCF',               10, 'East',    32),
+  ('UConn',             2,  'East',    34),
+  ('Furman',            15, 'East',    42);
 
 -- ============================================================
--- DONE. To update any "TBD" team names after bracket is set:
---   update tournament_teams set name = 'Real Team' where name = 'South 13 TBD';
---   update auction_items set display_name = 'Real Team' where display_name = 'East 11 Seed TBD';
+-- DONE.
 -- ============================================================

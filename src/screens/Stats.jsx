@@ -224,7 +224,7 @@ function OwnerTab() {
 
 // ── This Year tab ─────────────────────────────────────────────
 function ThisYearTab({ items, teams, standings, pot }) {
-  if (standings.length === 0) {
+  if (standings.length === 0 && items.filter(i => i.bid_amount).length === 0) {
     return (
       <div className="empty-state">
         <div className="empty-icon">📊</div>
@@ -233,66 +233,147 @@ function ThisYearTab({ items, teams, standings, pot }) {
     )
   }
 
-  // Auction stats
-  const soldItems  = items.filter(i => i.bid_amount)
-  const avgBid     = soldItems.length ? Math.round(pot / soldItems.length) : 0
-  const highBid    = soldItems.reduce((best, i) => i.bid_amount > (best?.bid_amount || 0) ? i : best, null)
-  const lowBid     = soldItems.filter(i => !items.find(j => j.id === i.id)?.is_block)
-                       .reduce((low, i) => i.bid_amount < (low?.bid_amount || 9999) ? i : low, null)
-
-  // Team stats
+  const soldItems       = items.filter(i => i.bid_amount)
+  const avgBid          = soldItems.length ? Math.round(pot / soldItems.length) : 0
+  const highBid         = soldItems.reduce((b, i) => i.bid_amount > (b?.bid_amount || 0) ? i : b, null)
+  const lowBid          = soldItems.filter(i => !i.is_block)
+                            .reduce((b, i) => i.bid_amount < (b?.bid_amount || 9999) ? i : b, null)
   const eliminatedTeams = teams.filter(t => t.eliminated)
-  const biggestLoser    = [...eliminatedTeams].sort((a,b) => b.loss_margin - a.loss_margin)[0]
-  const mostWins        = [...teams].sort((a,b) => b.wins - a.wins)[0]
+  const biggestLoser    = [...eliminatedTeams].sort((a, b) => b.loss_margin - a.loss_margin)[0]
 
-  // Owner who owns the most teams
-  const mostTeams = [...standings].sort((a,b) => b.items.length - a.items.length)[0]
-  const mostSpent = [...standings].sort((a,b) => b.totalBid - a.totalBid)[0]
+  // Owner with most total wins across all their teams
+  const ownerWins = standings.map(s => ({
+    owner: s.owner,
+    totalWins: s.teams.reduce((sum, t) => sum + t.wins, 0),
+    alive: s.alive,
+  })).sort((a, b) => b.totalWins - a.totalWins)
+  const topOwner = ownerWins[0]
 
-  const StatCard = ({ label, value, sub, color }) => (
-    <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 800, color: color || 'var(--text)', letterSpacing: '.02em', lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 14, color: 'var(--text3)', marginTop: 3 }}>{sub}</div>}
+  // Owner for biggest loser
+  const loserItem  = biggestLoser ? items.find(i => i.id === biggestLoser.auction_item_id) : null
+  const loserOwner = loserItem?.owner
+
+  const mostTeams = [...standings].sort((a, b) => b.items.length - a.items.length)[0]
+  const mostSpent = [...standings].sort((a, b) => b.totalBid - a.totalBid)[0]
+
+  // ── Stat card component ──────────────────────────────────
+  const StatCard = ({ label, value, valueSub, sub, color, wide }) => (
+    <div style={{
+      background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,
+      padding: '12px 14px',
+      gridColumn: wide ? 'span 2' : undefined,
+    }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 5 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-head)', fontSize: wide ? 28 : 24, fontWeight: 800, color: color || 'var(--text)', letterSpacing: '.02em', lineHeight: 1 }}>
+        {value}
+      </div>
+      {valueSub && (
+        <div style={{ fontFamily: 'var(--font-head)', fontSize: 15, fontWeight: 600, color: color ? color + 'aa' : 'var(--text2)', marginTop: 3, letterSpacing: '.02em' }}>
+          {valueSub}
+        </div>
+      )}
+      {sub && (
+        <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 4, lineHeight: 1.4 }}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 
   return (
     <>
+      {/* Pot hero */}
+      <div style={{ margin: '12px 16px 6px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(245,166,35,.13),rgba(232,84,26,.06))', border: '1px solid rgba(245,166,35,.25)', padding: '16px 18px' }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 4 }}>
+          {new Date().getFullYear()} Total Pot
+        </div>
+        <div style={{ fontFamily: 'var(--font-head)', fontSize: 48, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>
+          ${pot.toLocaleString()}
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--text2)', marginTop: 6 }}>
+          {soldItems.length} of {items.length} teams sold · avg ${avgBid} per team
+        </div>
+      </div>
+
+      {/* Auction section */}
       <div className="sec-head"><span>Auction</span></div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 8px' }}>
-        <StatCard label="Total pot"   value={`$${pot.toLocaleString()}`}         sub={`${soldItems.length} of ${items.length} sold`} color="var(--accent)" />
-        <StatCard label="Average bid" value={`$${avgBid}`}                        sub="per team" />
-        <StatCard label="Highest bid" value={highBid ? `$${highBid.bid_amount}` : '—'} sub={highBid?.display_name} color="var(--accent)" />
-        <StatCard label="Lowest bid"  value={lowBid  ? `$${lowBid.bid_amount}`  : '—'} sub={lowBid?.display_name} />
-        <StatCard label="Most teams"  value={mostTeams?.owner || '—'}             sub={`${mostTeams?.items.length || 0} teams`} />
-        <StatCard label="Most spent"  value={mostSpent?.owner || '—'}             sub={`$${(mostSpent?.totalBid || 0).toLocaleString()}`} />
+        <StatCard
+          label="Highest bid"
+          value={highBid ? `$${highBid.bid_amount}` : '—'}
+          sub={highBid?.display_name}
+          color="var(--accent)"
+        />
+        <StatCard
+          label="Lowest bid"
+          value={lowBid ? `$${lowBid.bid_amount}` : '—'}
+          sub={lowBid?.display_name}
+        />
+        <StatCard
+          label="Most teams"
+          value={mostTeams?.owner || '—'}
+          sub={mostTeams ? `${mostTeams.items.length} teams bought` : undefined}
+        />
+        <StatCard
+          label="Most spent"
+          value={mostSpent?.owner || '—'}
+          sub={mostSpent ? `$${mostSpent.totalBid.toLocaleString()} total` : undefined}
+        />
       </div>
 
+      {/* Tournament section */}
       <div className="sec-head"><span>Tournament</span></div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 8px' }}>
-        <StatCard label="Most wins"    value={mostWins ? `${mostWins.wins}W` : '—'}           sub={mostWins?.name} color="var(--green)" />
-        <StatCard label="Biggest loss" value={biggestLoser ? `−${biggestLoser.loss_margin}` : '—'} sub={biggestLoser?.name} color="var(--red)" />
-        <StatCard label="Still alive"  value={teams.filter(t => !t.eliminated).length}         sub="teams remaining" color="var(--green)" />
-        <StatCard label="Eliminated"   value={eliminatedTeams.length}                           sub="teams out" />
+
+        {/* Most wins — owner-level */}
+        <StatCard
+          label="Winning most"
+          value={topOwner?.totalWins > 0 ? topOwner.owner : '—'}
+          valueSub={topOwner?.totalWins > 0 ? `${topOwner.totalWins} total wins` : undefined}
+          sub={topOwner?.alive > 0 ? `${topOwner.alive} teams still alive` : undefined}
+          color="var(--green)"
+        />
+
+        {/* Biggest loss — show margin prominently */}
+        <StatCard
+          label="Biggest loss"
+          value={biggestLoser?.loss_margin > 0 ? `−${biggestLoser.loss_margin}` : '—'}
+          valueSub={biggestLoser ? biggestLoser.name : undefined}
+          sub={loserOwner ? `Owner: ${loserOwner}` : undefined}
+          color="var(--red)"
+        />
+
+        <StatCard
+          label="Still alive"
+          value={teams.filter(t => !t.eliminated).length}
+          sub="teams remaining"
+          color="var(--green)"
+        />
+        <StatCard
+          label="Eliminated"
+          value={eliminatedTeams.length}
+          sub="teams out"
+        />
       </div>
 
-      {/* Per-owner this year */}
-      <div className="sec-head"><span>This year by owner</span></div>
-      {[...standings].sort((a,b) => b.net - a.net).map((s, i) => (
-        <div key={s.owner} style={{ display: 'flex', alignItems: 'center', padding: '9px 16px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 10 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--text3)', width: 16, flexShrink: 0 }}>{i + 1}</div>
+      {/* Per-owner breakdown */}
+      <div className="sec-head"><span>By owner</span></div>
+      {[...standings].sort((a, b) => b.net - a.net).map((s, i) => (
+        <div key={s.owner} style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid rgba(42,47,61,.45)', gap: 10 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: i < 3 ? 'var(--accent)' : 'var(--text3)', width: 18, flexShrink: 0 }}>{i + 1}</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 17, fontWeight: 700, letterSpacing: '.03em', color: 'var(--text)' }}>{s.owner}</div>
-            <div style={{ fontSize: 14, color: 'var(--text3)', marginTop: 1 }}>
+            <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 1 }}>
               {s.items.length} teams · ${s.totalBid.toLocaleString()} bid · {s.alive} alive
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: s.gross > 0 ? 'var(--accent)' : 'var(--text3)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: s.gross > 0 ? 'var(--accent)' : 'var(--text3)' }}>
               ${s.gross.toLocaleString()} gross
             </div>
-            <div style={{ fontSize: 14, marginTop: 2, color: s.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            <div style={{ fontSize: 13, marginTop: 2, color: s.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
               {s.net >= 0 ? '+' : '−'}${Math.abs(s.net).toLocaleString()} net
             </div>
           </div>
@@ -303,7 +384,15 @@ function ThisYearTab({ items, teams, standings, pot }) {
   )
 }
 
-// ── Teams Tab (historic ROI by team name) ─────────────────────
+// ── Stats shell — shows only 2026 for now; other tabs preserved ──
+export default function Stats({ items, teams, standings, pot, goToAdmin, adminAuthed }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <AppHeader title="STATS" subtitle="2026 season" goToAdmin={goToAdmin} adminAuthed={adminAuthed} />
+      <ThisYearTab items={items} teams={teams} standings={standings} pot={pot} />
+    </div>
+  )
+}
 const TEAM_HISTORY = [
   { team:'Alabama',       apps:6,  bid:111, value:105, roi:-5   },
   { team:'Arizona',       apps:7,  bid:113, value:41,  roi:-64  },
@@ -442,27 +531,4 @@ function TeamsTab() {
   )
 }
 
-// ── Stats shell ───────────────────────────────────────────────
-export default function Stats({ items, teams, standings, pot, goToAdmin, adminAuthed }) {
-  const [tab, setTab] = useState('thisyear')
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <AppHeader title="STATS" goToAdmin={goToAdmin} adminAuthed={adminAuthed} />
-
-      <div className="tab-row" style={{ overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none' }}>
-        <button className={`tab-btn ${tab === 'thisyear' ? 'active' : ''}`} onClick={() => setTab('thisyear')} style={{ whiteSpace: 'nowrap' }}>2026</button>
-        <button className={`tab-btn ${tab === 'owners'   ? 'active' : ''}`} onClick={() => setTab('owners')}   style={{ whiteSpace: 'nowrap' }}>By Owner</button>
-        <button className={`tab-btn ${tab === 'seeds'    ? 'active' : ''}`} onClick={() => setTab('seeds')}    style={{ whiteSpace: 'nowrap' }}>By Seed</button>
-        <button className={`tab-btn ${tab === 'teams'    ? 'active' : ''}`} onClick={() => setTab('teams')}    style={{ whiteSpace: 'nowrap' }}>By Team</button>
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {tab === 'thisyear' && <ThisYearTab items={items} teams={teams} standings={standings} pot={pot} />}
-        {tab === 'owners'   && <OwnerTab />}
-        {tab === 'seeds'    && <SeedTab />}
-        {tab === 'teams'    && <TeamsTab />}
-      </div>
-    </div>
-  )
-}
