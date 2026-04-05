@@ -101,6 +101,11 @@ function getNextOpponents(team, allTeams) {
     return pool.filter(t => t.wins >= 3).slice(0, 2)
   }
 
+  if (wins === 5) {
+    const opp = allTeams.find(t => !t.eliminated && t.wins === 5 && t.id !== team.id)
+    return opp ? [opp] : []
+  }
+
   return []
 }
 
