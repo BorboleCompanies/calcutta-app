@@ -228,7 +228,7 @@ const POD_C = [6,11,3,14], POD_D = [7,10,2,15]
 const TOP_HALF   = [...POD_A,...POD_B], BOT_HALF = [...POD_C,...POD_D]
 const R64_PAIRS  = [[1,16],[8,9],[5,12],[4,13],[6,11],[3,14],[7,10],[2,15]]
 const REGIONS    = ['Midwest','West','South','East']
-const FF_PAIRS   = [['South','Midwest'],['East','West']]
+const FF_PAIRS   = [['South','East'],['Midwest','West']]
 const ROUND_LABELS = ['Round of 64','Round of 32','Sweet 16','Elite 8','Final Four','Championship']
 
 function getActiveMatchups(teams) {
@@ -300,7 +300,7 @@ function ResultsTab({ teams, items, toast }) {
     const loserPod = ALL_PODS.find(pod => pod.includes(loser.seed)) || []
 
     // For Final Four (wins=4) the winner is in a different region
-    const FF_OPP = { South:'Midwest', Midwest:'South', East:'West', West:'East' }
+    const FF_OPP = { South:'East', East:'South', Midwest:'West', West:'Midwest' }
 
     let winner = null
     if (loser.wins === 4) {
