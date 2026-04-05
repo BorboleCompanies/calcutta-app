@@ -49,8 +49,8 @@ const E8_OPP_SEEDS = {
 
 // Adjust these pairings if the bracket changes year to year
 const FF_REGION_OPP = {
-  South: 'Midwest', Midwest: 'South',
-  East:  'West',    West:    'East',
+  South: 'East', East: 'South',
+  Midwest:  'West',    West:    'Midwest',
 }
 
 function getNextOpponents(team, allTeams) {
